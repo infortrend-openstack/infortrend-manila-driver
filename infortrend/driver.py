@@ -35,11 +35,10 @@ infortrend_nas_opts = [
     cfg.StrOpt('infortrend_nas_ip',
                default='',
                help='Infortrend nas ip. '
-               'It is the management ip.'),
+               'It is the ip for management.'),
     cfg.StrOpt('infortrend_nas_user',
                default='manila',
-               help='Infortrend nas username. '
-               'Default value is manila.'),
+               help='Infortrend nas username.'),
     cfg.StrOpt('infortrend_nas_password',
                default='',
                help='Infortrend nas password. '
@@ -54,11 +53,10 @@ infortrend_nas_opts = [
                'It is separated with comma.'),
     cfg.IntOpt('infortrend_cli_max_retries',
                default=5,
-               help='Maximum retry time for cli. Default is 5.'),
+               help='Maximum retry times for cli.'),
     cfg.IntOpt('infortrend_cli_timeout',
                default=30,
-               help='Default timeout for CLI in seconds. '
-               'By Default, it is 30 seconds.'),
+               help='CLI timeout in seconds.'),
 ]
 
 CONF = cfg.CONF
@@ -67,13 +65,14 @@ CONF.register_opts(infortrend_nas_opts)
 
 class InfortrendNASDriver(driver.ShareDriver):
 
-    """Infortrend Share Driver for GS Series using NASCLI.
+    """Infortrend Share Driver for GS/GSe Family using NASCLI.
 
     Version history:
         1.0.0 - Initial driver
     """
 
     VERSION = "1.0.0"
+    PROTOCOL = "NFS"
 
     def __init__(self, *args, **kwargs):
         super(InfortrendNASDriver, self).__init__(False, *args, **kwargs)
@@ -86,7 +85,7 @@ class InfortrendNASDriver(driver.ShareDriver):
         ssh_key = self.configuration.safe_get('infortrend_ssh_key')
         retries = self.configuration.safe_get('infortrend_cli_max_retries')
         timeout = self.configuration.safe_get('infortrend_cli_timeout')
-        
+
         self.ift_nas = infortrend_nas.InfortrendNAS(nas_ip, username, password,
                                                     ssh_key, retries, timeout)
 
@@ -124,12 +123,12 @@ class InfortrendNASDriver(driver.ShareDriver):
 
     def do_setup(self, context):
         """Any initialization the share driver does while starting."""
-        LOG.debug('do_setup start')
+        LOG.debug('Infortrend NAS do_setup start.')
         self.common.do_setup()
 
     def check_for_setup_error(self):
         """Check for setup error."""
-        LOG.debug('check_for_setup_error start')
+        LOG.debug('Infortrend NAS check_for_setup_error start.')
         max_ratio = self.configuration.safe_get('max_over_subscription_ratio')
         if not max_ratio or float(max_ratio) < 1.0:
             msg = (_("Invalid max_over_subscription_ratio '%s'. "
@@ -138,30 +137,23 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         self.common.check_for_setup_error()
 
-    def get_share_stats(self, refresh=False):
-        """Get share status.
+    def _update_share_stats(self):
+        """Retrieve stats info from share group."""
 
-        If 'refresh' is True, run update the stats first.
-        """
-        if not self._stats or refresh:
-            self._update_share_stats()
+        LOG.debug("Updating Infortrend share stats.")
 
-        return self._stats
+        data = dict(share_backend_name=self.backend_name,
+                    vendor_name='Infortrend',
+                    driver_version=self.VERSION,
+                    storage_protocol=self.PROTOCOL,
+                    total_capacity_gb=0.0,
+                    free_capacity_gb=0.0,
+                    reserved_percentage=self.configuration.
+                    reserved_share_percentage)
 
-    def _update_share_stats(self, data=None):
-        """Retrieve stats info from share group.
+        self.ift_nas.update_share_stats(data)
 
-        :param data: dict -- dict with key-value pairs to redefine common ones.
-        """
-
-        LOG.debug("Updating share stats.")
-
-        common = self.common._update_share_stats()
-
-        if isinstance(data, dict):
-            common.update(data)
-        self._stats = common
-
+        super(InfortrendNASDriver, self)._update_share_stats(data)
 
     def create_share(self, context, share, share_server=None):
         """Is called to create share."""
