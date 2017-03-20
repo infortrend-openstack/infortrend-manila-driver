@@ -47,7 +47,7 @@ infortrend_nas_opts = [
     cfg.StrOpt('infortrend_nas_ssh_key',
                default='',
                help='Infortrend nas ssh key.'),
-    cfg.StrOpt('infortrend_pools_name',
+    cfg.StrOpt('infortrend_share_pools',
                default='',
                help='Infortrend nas pool name list. '
                'It is separated with comma.'),
@@ -78,16 +78,62 @@ class InfortrendNASDriver(driver.ShareDriver):
         super(InfortrendNASDriver, self).__init__(False, *args, **kwargs)
         self.configuration.append_config_values(infortrend_nas_opts)
 
-        self.backend_name = self.configuration.safe_get('share_backend_name')
         nas_ip = self.configuration.safe_get('infortrend_nas_ip')
         username = self.configuration.safe_get('infortrend_nas_user')
         password = self.configuration.safe_get('infortrend_nas_password')
-        ssh_key = self.configuration.safe_get('infortrend_ssh_key')
+        ssh_key = self.configuration.safe_get('infortrend_nas_ssh_key')
         retries = self.configuration.safe_get('infortrend_cli_max_retries')
         timeout = self.configuration.safe_get('infortrend_cli_timeout')
 
+        if not nas_ip:
+            msg = _('The infortrend_nas_ip is not set.')
+            raise exception.InvalidParameterValue(err=msg)
+
+        if not (password or ssh_key):
+            msg = _('Either infortrend_nas_password or infortrend_nas_ssh_key '
+                    'should be set.')
+            raise exception.InvalidParameterValue(err=msg)
+
+        pool_list = self._init_pool_list()
+        self.backend_name = self.configuration.safe_get('share_backend_name')
         self.ift_nas = infortrend_nas.InfortrendNAS(nas_ip, username, password,
-                                                    ssh_key, retries, timeout)
+                                                    ssh_key, retries, timeout,
+                                                    pool_list)
+
+    def _init_pool_list(self):
+        pools_name = self.configuration.safe_get('infortrend_share_pools')
+        if not pools_name:
+            msg = _('The infortrend_share_pools is not set.')
+            raise exception.InvalidParameterValue(err=msg)
+
+        tmp_pool_list = pools_name.split(',')
+        return [pool.strip() for pool in tmp_pool_list]
+
+    def do_setup(self, context):
+        """Any initialization the share driver does while starting."""
+        LOG.debug('Infortrend NAS do_setup start.')
+
+    def check_for_setup_error(self):
+        """Check for setup error."""
+        LOG.debug('Infortrend NAS check_for_setup_error start.')
+        self.ift_nas.check_for_setup_error()
+
+    def _update_share_stats(self):
+        """Retrieve stats info from share group."""
+
+        LOG.debug('Updating Infortrend share stats.')
+
+        data = dict(share_backend_name=self.backend_name,
+                    vendor_name='Infortrend',
+                    driver_version=self.VERSION,
+                    storage_protocol=self.PROTOCOL,
+                    total_capacity_gb=0.0,
+                    free_capacity_gb=0.0,
+                    reserved_percentage=self.configuration.
+                    reserved_share_percentage,
+                    pools=self.ift_nas.update_pools_stats())
+
+        super(InfortrendNASDriver, self)._update_share_stats(data)
 
     def update_access(self, context, share, access_rules, add_rules,
                       delete_rules, share_server=None):
@@ -119,41 +165,7 @@ class InfortrendNASDriver(driver.ShareDriver):
                 'share': share, 'access_rules': access_rules,
                 'add_rules': add_rules, 'delete_rules': delete_rules})
         return self.common.update_access(context, share, access_rules,
-        								 add_rules, delete_rules, share_server)
-
-    def do_setup(self, context):
-        """Any initialization the share driver does while starting."""
-        LOG.debug('Infortrend NAS do_setup start.')
-        self.common.do_setup()
-
-    def check_for_setup_error(self):
-        """Check for setup error."""
-        LOG.debug('Infortrend NAS check_for_setup_error start.')
-        max_ratio = self.configuration.safe_get('max_over_subscription_ratio')
-        if not max_ratio or float(max_ratio) < 1.0:
-            msg = (_("Invalid max_over_subscription_ratio '%s'. "
-                     "Valid value should be >= 1.0.") % max_ratio)
-            raise exception.InvalidParameterValue(err=msg)
-
-        self.common.check_for_setup_error()
-
-    def _update_share_stats(self):
-        """Retrieve stats info from share group."""
-
-        LOG.debug("Updating Infortrend share stats.")
-
-        data = dict(share_backend_name=self.backend_name,
-                    vendor_name='Infortrend',
-                    driver_version=self.VERSION,
-                    storage_protocol=self.PROTOCOL,
-                    total_capacity_gb=0.0,
-                    free_capacity_gb=0.0,
-                    reserved_percentage=self.configuration.
-                    reserved_share_percentage)
-
-        self.ift_nas.update_share_stats(data)
-
-        super(InfortrendNASDriver, self)._update_share_stats(data)
+                                         add_rules, delete_rules, share_server)
 
     def create_share(self, context, share, share_server=None):
         """Is called to create share."""

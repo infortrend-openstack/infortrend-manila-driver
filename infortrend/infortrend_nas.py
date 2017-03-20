@@ -61,18 +61,40 @@ def retry_cli(func):
         return rc, out
     return inner
 
+def bi_to_gi(bi_size):
+    return bi_size / units.Gi
+
 
 class InfortrendNAS(object):
 
-    def __init__(self, nas_ip, username, password, ssh_key, retries, timeout):
+    def __init__(self, nas_ip, username, password, ssh_key,
+                 retries, timeout, pool_list):
         self.nas_ip = nas_ip
         self.username = username
         self.password = password
         self.ssh_key = ssh_key
         self.cli_retry_time = retries
         self.cli_timeout = timeout
+        self.pool_list = pool_list
         self.command = ""
         self.sshpool = None
+        self.location = 'a@0'
+
+    def _execute(self, command_line):
+        commands = ' '.join(command_line)
+        mutils.check_ssh_injection(commands)
+        LOG.debug('Executing: %(command)s', {'command': commands})
+
+        rc, result = self._ssh_execute(commands)
+
+        if rc != 0:
+            msg = _('Failed to execute commands: [%(command)s].') % {
+                        'command': commands}
+            LOG.error(msg)
+            raise exception.InfortrendNASException(
+                err=msg, rc=rc, out=out)
+
+        return result
 
     @retry_cli
     def _ssh_execute(self, commands):
@@ -100,20 +122,6 @@ class InfortrendNAS(object):
 
             return rc, result
 
-    def _execute(self, command_line):
-        commands = ' '.join(command_line)
-        mutils.check_ssh_injection(commands)
-        LOG.debug('Executing: %(command)s', {'command': commands})
-
-        rc, result = self._ssh_execute(commands)
-
-        if rc != 0:
-            msg = _('Failed to execute commands: [%(command)s].') % {
-                        'command': commands}
-            LOG.error(msg)
-            raise exception.InfortrendNASException(
-                err=msg, rc=rc, out=out)
-
     def _parser(self, content=None):
 
         content = content.replace("\r", "")
@@ -121,7 +129,14 @@ class InfortrendNAS(object):
         LOG.debug(content)
 
         if content:
-            content_dict = eval(content)
+            try:
+                content_dict = eval(content)
+            except:
+                msg = _('Failed to parse data: %(content)s to dictionary') % {
+                            'content': content}
+                LOG.error(msg)
+                raise exception.InfortrendNASException(err=msg)
+
             rc = int(content_dict['cliCode'][0]['Return'], 16)
             if rc == 0:
                 result = content_dict['data']
@@ -133,17 +148,67 @@ class InfortrendNAS(object):
 
         return rc, result
 
+    def check_for_setup_error(self):
+        self._check_pools_setup()
 
-    def update_share_stats(self, data):
-        command_line = ['folder', 'status', '-z', 'a@0']
-        rc, pool_data = self._execute(command_line)
+    def _check_pools_setup(self):
+        pool_list = self.pool_list[:]
+        pool_data = self._execute(command_line)
+        for pool_info in pool_data:
+            pool_name = self._extract_pool_name(pool_info)
+            if pool_name in self.pool_list:
+                pool_list.remove(pool_name)
+            if len(pool_list) == 0:
+                break
 
+        if len(pool_list) != 0:
+            msg = _('Please create %(pool_list)s pool in advance!') % {
+                        'pool_list': pool_list}
+            LOG.error(msg)
+            raise exception.VolumeDriverException(message=msg)
+
+    def _extract_pool_name(self, pool_info):
+        return pool_info['directory'].split('/')[2]
+
+    def _extract_lv_name(self, pool_info):
+        return pool_info['directory'].split('/')[1]
+
+    def update_pools_stats(self):
+        pools = []
+        command_line = ['folder', 'status', '-z', self.location]
+        pools_data = self._execute(command_line)
+
+        for pool_info in pools_data:
+            pool_name = self._extract_pool_name(pool_info)
+
+            if pool_name in self.pool_list:
+                total_space = float(pool_info['size'])
+                available_space = float(pool_info['free'])
+
+                total_capacity_gb = round(bi_to_gi(total_space), 2)
+                free_capacity_gb = round(bi_to_gi(available_space), 2)
+
+                pool = {
+                    'pool_name': pool_name,
+                    'total_capacity_gb': total_capacity_gb,
+                    'free_capacity_gb': free_capacity_gb,
+                    'reserved_percentage': 0,
+                    'qos': False,
+                    'dedupe': False,
+                    'compression': False,
+                    'snapshot_support': False,
+                    'thin_provisioning': False,
+                    'replication_type': None,
+                }
+                pools.append(pool)
+
+        return pools
 
     def create_folder(self):
-        command_line = ['folder', 'options', pool_id, pool_name, '-c', share_name, '-z', 'a@0']
+        command_line = ['folder', 'options', pool_name, volume_name, '-c', share_name, '-z', self.location]
     
     def delete_folder(self):
-        command_line = ['folder', 'options', pool_id, pool_name, '-d', share_name, '-z', 'a@0']
+        command_line = ['folder', 'options', pool_name, volume_name, '-d', share_name, '-z', self.location]
 
     def create_user(self):
 
@@ -152,3 +217,4 @@ class InfortrendNAS(object):
 
 
     def deny_access(self):
+
