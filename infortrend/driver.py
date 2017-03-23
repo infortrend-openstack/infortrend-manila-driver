@@ -94,24 +94,29 @@ class InfortrendNASDriver(driver.ShareDriver):
                     'should be set.')
             raise exception.InvalidParameterValue(err=msg)
 
-        pool_list = self._init_pool_list()
+        pool_dict = self._init_pool_dict()
         self.backend_name = self.configuration.safe_get('share_backend_name')
         self.ift_nas = infortrend_nas.InfortrendNAS(nas_ip, username, password,
                                                     ssh_key, retries, timeout,
-                                                    pool_list)
+                                                    pool_dict)
 
-    def _init_pool_list(self):
+    def _init_pool_dict(self):
+        temp_pool_dict = {}
         pools_name = self.configuration.safe_get('infortrend_share_pools')
         if not pools_name:
             msg = _('The infortrend_share_pools is not set.')
             raise exception.InvalidParameterValue(err=msg)
 
         tmp_pool_list = pools_name.split(',')
-        return [pool.strip() for pool in tmp_pool_list]
+        for pool in tmp_pool_list:
+            temp_pool_dict[pool.strip()] = {}
+
+        return temp_pool_dict
 
     def do_setup(self, context):
         """Any initialization the share driver does while starting."""
         LOG.debug('Infortrend NAS do_setup start.')
+        self.ift_nas.do_setup()
 
     def check_for_setup_error(self):
         """Check for setup error."""
@@ -164,7 +169,7 @@ class InfortrendNASDriver(driver.ShareDriver):
             'delete_rules: %(delete_rules)s,', {
                 'share': share, 'access_rules': access_rules,
                 'add_rules': add_rules, 'delete_rules': delete_rules})
-        return self.common.update_access(context, share, access_rules,
+        return self.ift_nas.update_access(context, share, access_rules,
                                          add_rules, delete_rules, share_server)
 
     def create_share(self, context, share, share_server=None):
@@ -172,7 +177,7 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         LOG.debug('Creating share: %s.' % share)
 
-        return self.common.create_share(share)
+        return self.ift_nas.create_share(share)
 
 
     def delete_share(self, context, share, share_server=None):
@@ -180,7 +185,7 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         LOG.debug('Deleting share: %s.' % share)
 
-        return self.common.delete_share(share)
+        return self.ift_nas.delete_share(share)
 
 
     def get_pool(self, share):

@@ -25,7 +25,7 @@ import six
 
 from manila.common import constants
 from manila import exception
-from manila.i18n import _, _LE, _LI, _LW
+from manila.i18n import _
 from manila.share import driver
 from manila import utils as mutils
 
@@ -47,9 +47,9 @@ def retry_cli(func):
             if rc == 0:
                 break
 
-            LOG.error(_LE(
+            LOG.error(
                 'Retry %(retry)s times: %(method)s Failed '
-                '%(rc)s: %(reason)s'), {
+                '%(rc)s: %(reason)s', {
                     'retry': retry_time,
                     'method': self.__class__.__name__,
                     'rc': rc,
@@ -68,14 +68,14 @@ def bi_to_gi(bi_size):
 class InfortrendNAS(object):
 
     def __init__(self, nas_ip, username, password, ssh_key,
-                 retries, timeout, pool_list):
+                 retries, timeout, pool_dict):
         self.nas_ip = nas_ip
         self.username = username
         self.password = password
         self.ssh_key = ssh_key
         self.cli_retry_time = retries
         self.cli_timeout = timeout
-        self.pool_list = pool_list
+        self.pool_dict = pool_dict
         self.command = ""
         self.sshpool = None
         self.location = 'a@0'
@@ -115,9 +115,9 @@ class InfortrendNAS(object):
                 rc = pe.exit_code
                 result = pe.stdout
                 result = result.replace('\n', '\\n')
-                LOG.error(_LE(
+                LOG.error(
                     'Error on execute ssh command. '
-                    'Error code: %(exit_code)d Error msg: %(result)s'), {
+                    'Error code: %(exit_code)d Error msg: %(result)s', {
                         'exit_code': pe.exit_code, 'result': result})
 
             return rc, result
@@ -148,16 +148,22 @@ class InfortrendNAS(object):
 
         return rc, result
 
+    def do_setup(self):
+        pass
+
     def check_for_setup_error(self):
         self._check_pools_setup()
 
     def _check_pools_setup(self):
-        pool_list = self.pool_list[:]
+        pool_list = self.pool_dict.keys()
+        command_line = ['folder', 'status', '-z', self.location]
         pool_data = self._execute(command_line)
         for pool_info in pool_data:
             pool_name = self._extract_pool_name(pool_info)
-            if pool_name in self.pool_list:
+            if pool_name in self.pool_dict.keys():
                 pool_list.remove(pool_name)
+                self.pool_dict[pool_name]['id'] = pool_info['volumeId']
+                self.pool_dict[pool_name]['path'] = pool_info['directory']
             if len(pool_list) == 0:
                 break
 
@@ -181,7 +187,7 @@ class InfortrendNAS(object):
         for pool_info in pools_data:
             pool_name = self._extract_pool_name(pool_info)
 
-            if pool_name in self.pool_list:
+            if pool_name in self.pool_dict.keys():
                 total_space = float(pool_info['size'])
                 available_space = float(pool_info['free'])
 
@@ -204,11 +210,26 @@ class InfortrendNAS(object):
 
         return pools
 
-    def create_folder(self):
-        command_line = ['folder', 'options', pool_name, volume_name, '-c', share_name, '-z', self.location]
-    
-    def delete_folder(self):
-        command_line = ['folder', 'options', pool_name, volume_name, '-d', share_name, '-z', self.location]
+    def create_share(self, share):
+        pool_name = share['host'].split('#')[-1]
+        pool_id = self.pool_dict[pool_name]
+        command_line = ['folder', 'options', pool_id, pool_name, '-c', share['ID'], '-z', self.location]
+        self._execute(command_line)
+
+    def delete_share(self, share):
+        self._check_share_exist(share['ID'])
+        command_line = ['folder', 'options', pool_id, pool_name, '-d', share['ID'], '-z', self.location]
+        self._execute(command_line)
+
+    def _check_share_exist(self, share_id):
+        command_line = ['pagelist', 'folder', '-z', self.location]
+
+        command_line = ['folder', 'status', '-z', self.location]
+
+
+
+    def update_access(self):
+
 
     def create_user(self):
 
