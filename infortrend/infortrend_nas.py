@@ -27,7 +27,8 @@ from manila.common import constants
 from manila import exception
 from manila.i18n import _
 from manila.share import driver
-from manila import utils as mutils
+from manila import utils as manila_utils
+from manila.share import utils as share_utils
 
 LOG = log.getLogger(__name__)
 DEFAULT_RETRY_TIME = 5
@@ -82,7 +83,7 @@ class InfortrendNAS(object):
 
     def _execute(self, command_line):
         commands = ' '.join(command_line)
-        mutils.check_ssh_injection(commands)
+        manila_utils.check_ssh_injection(commands)
         LOG.debug('Executing: %(command)s', {'command': commands})
 
         rc, result = self._ssh_execute(commands)
@@ -211,22 +212,65 @@ class InfortrendNAS(object):
         return pools
 
     def create_share(self, share):
-        pool_name = share['host'].split('#')[-1]
-        pool_id = self.pool_dict[pool_name]
-        command_line = ['folder', 'options', pool_id, pool_name, '-c', share['ID'], '-z', self.location]
+        pool_name = share_utils.extract_host(share['host'], level='pool')
+        pool_id = self.pool_dict[pool_name]['id']
+        pool_path = self.pool_dict[pool_name]['path']
+        share_proto = share['share_proto']
+
+        command_line = ['folder', 'options', pool_id, pool_name,
+                        '-c', share['ID'], '-z', self.location]
         self._execute(command_line)
+
+        LOG.info('Create Share [%(share_id)s] completed.', {
+                     'share_id': share['ID']})
+
+        return self._export_location(share_name, share_proto, pool_path)
+
+    def _export_location(self, share_name, share_proto, pool_path=None):
+        location_data = {
+            'ip': self.nas_ip,
+            'pool': pool_path,
+            'name': share_name,
+        }
+        if share_proto == 'NFS':
+            location = ("%(ip)s:%(pool)s\\%(name)s" % location_data)
+        elif share_proto == 'CIFS':
+            location = ("\\\\%(ip)s\\%(name)s" % location_data)
+        else:
+            msg = _('Unsupported protocol: [%s].') % share_proto
+            raise exception.InvalidInput(msg)
+
+        export_location = {
+            'path': location,
+            'is_admin_only': False,
+            'metadata': {},
+        }
+        return export_location
 
     def delete_share(self, share):
-        self._check_share_exist(share['ID'])
-        command_line = ['folder', 'options', pool_id, pool_name, '-d', share['ID'], '-z', self.location]
-        self._execute(command_line)
+        pool_name = share_utils.extract_host(share['host'], level='pool')
+        pool_id = self.pool_dict[pool_name]['id']
 
-    def _check_share_exist(self, share_id):
-        command_line = ['pagelist', 'folder', '-z', self.location]
+        if self._check_share_exist(pool_name, share['ID']):
+            command_line = ['folder', 'options', pool_id, pool_name,
+                            '-d', share['ID'], '-z', self.location]
+            self._execute(command_line)
+        else:
+            LOG.warning('Share [%(share_id)s] is already deleted.', {
+                            'share_id': share['ID']})
 
-        command_line = ['folder', 'status', '-z', self.location]
+        LOG.info('Delete Share [%(share_id)s] completed.', {
+                     'share_id': share['ID']})
 
-
+    def _check_share_exist(self, pool_name, share_id):
+        share_exist = False
+        path = self.pool_dict[pool_name]['path']
+        command_line = ['pagelist', 'folder', path, '-z', self.location]
+        subfolders = self._execute(command_line)
+        for subfolder in subfolders:
+            if subfolder['name'] == share_id:
+                share_exist = True
+        return share_exist
 
     def update_access(self):
 

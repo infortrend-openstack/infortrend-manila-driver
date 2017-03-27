@@ -72,7 +72,7 @@ class InfortrendNASDriver(driver.ShareDriver):
     """
 
     VERSION = "1.0.0"
-    PROTOCOL = "NFS"
+    PROTOCOL = "NFS_CIFS"
 
     def __init__(self, *args, **kwargs):
         super(InfortrendNASDriver, self).__init__(False, *args, **kwargs)
