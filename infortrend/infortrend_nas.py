@@ -221,6 +221,11 @@ class InfortrendNAS(object):
                         '-c', share['ID'], '-z', self.location]
         self._execute(command_line)
 
+        command_line = ['fquota', 'create', pool_id, pool_name,
+                        share['ID'], str(share['size']) + 'G',
+                        '-t', 'folder', '-z', self.location]
+        self._execute(command_line)
+
         LOG.info('Create Share [%(share_id)s] completed.', {
                      'share_id': share['ID']})
 
