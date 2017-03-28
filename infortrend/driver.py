@@ -175,7 +175,7 @@ class InfortrendNASDriver(driver.ShareDriver):
     def create_share(self, context, share, share_server=None):
         """Is called to create share."""
 
-        LOG.debug('Creating share: %s.' % share)
+        LOG.debug('Creating share: [%s].' % share)
 
         return self.ift_nas.create_share(share)
 
@@ -183,7 +183,7 @@ class InfortrendNASDriver(driver.ShareDriver):
     def delete_share(self, context, share, share_server=None):
         """Is called to remove share."""
 
-        LOG.debug('Deleting share: %s.' % share)
+        LOG.debug('Deleting share: [%s].' % share)
 
         return self.ift_nas.delete_share(share)
 

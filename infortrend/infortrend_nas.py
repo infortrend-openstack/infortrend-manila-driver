@@ -233,7 +233,7 @@ class InfortrendNAS(object):
             'name': share_name,
         }
         if share_proto == 'NFS':
-            location = ("%(ip)s:%(pool)s\\%(name)s" % location_data)
+            location = ("%(ip)s:/%(pool)s/%(name)s" % location_data)
         elif share_proto == 'CIFS':
             location = ("\\\\%(ip)s\\%(name)s" % location_data)
         else:
