@@ -221,10 +221,7 @@ class InfortrendNAS(object):
                         '-c', share['ID'], '-z', self.location]
         self._execute(command_line)
 
-        command_line = ['fquota', 'create', pool_id, pool_name,
-                        share['ID'], str(share['size']) + 'G',
-                        '-t', 'folder', '-z', self.location]
-        self._execute(command_line)
+        self._set_share_size(pool_id, pool_name, share['ID'], share['size'])
 
         LOG.info('Create Share [%(share_id)s] completed.', {
                      'share_id': share['ID']})
@@ -251,6 +248,18 @@ class InfortrendNAS(object):
             'metadata': {},
         }
         return export_location
+
+    def _set_share_size(self, pool_id, pool_name, share_id, share_size):
+        command_line = ['fquota', 'create', pool_id, pool_name,
+                        share_id, str(share_size) + 'G',
+                        '-t', 'folder', '-z', self.location]
+        self._execute(command_line)
+
+        LOG.debug('Set Share [%(share_id)s] '
+                  'Size [%(share_size)s G] completed.', {
+                      'share_id': share_id,
+                      'share_size': share_size})
+        return
 
     def delete_share(self, share):
         pool_name = share_utils.extract_host(share['host'], level='pool')
