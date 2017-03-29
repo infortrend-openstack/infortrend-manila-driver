@@ -84,6 +84,7 @@ class InfortrendNASDriver(driver.ShareDriver):
         ssh_key = self.configuration.safe_get('infortrend_nas_ssh_key')
         retries = self.configuration.safe_get('infortrend_cli_max_retries')
         timeout = self.configuration.safe_get('infortrend_cli_timeout')
+        self.backend_name = self.configuration.safe_get('share_backend_name')
 
         if not nas_ip:
             msg = _('The infortrend_nas_ip is not set.')
@@ -95,7 +96,6 @@ class InfortrendNASDriver(driver.ShareDriver):
             raise exception.InvalidParameterValue(err=msg)
 
         pool_dict = self._init_pool_dict()
-        self.backend_name = self.configuration.safe_get('share_backend_name')
         self.ift_nas = infortrend_nas.InfortrendNAS(nas_ip, username, password,
                                                     ssh_key, retries, timeout,
                                                     pool_dict)
@@ -169,8 +169,8 @@ class InfortrendNASDriver(driver.ShareDriver):
             'delete_rules: %(delete_rules)s,', {
                 'share': share, 'access_rules': access_rules,
                 'add_rules': add_rules, 'delete_rules': delete_rules})
-        return self.ift_nas.update_access(context, share, access_rules,
-                                         add_rules, delete_rules, share_server)
+        return self.ift_nas.update_access(share, access_rules, add_rules,
+                                          delete_rules, share_server)
 
     def create_share(self, context, share, share_server=None):
         """Is called to create share."""

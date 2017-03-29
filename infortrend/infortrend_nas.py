@@ -286,14 +286,56 @@ class InfortrendNAS(object):
                 share_exist = True
         return share_exist
 
-    def update_access(self):
+    def update_access(self, share, access_rules, add_rules,
+                      delete_rules, share_server=None):
+        if not (add_rules or delete_rules):
+            self._clear_access(share, share_server)
+            for access in access_rules:
+                self.allow_access(share, access, share_server)
+        else:
+            for access in delete_rules:
+                self.deny_access(share, access, share_server)
+            for access in add_rules:
+                self.allow_access(share, access, share_server)
+
+    def _clear_access(self):
 
 
-    def create_user(self):
+    def allow_access(self, share, access, share_server=None):
+        share_proto = share['share_proto']
+        share_id = share['ID']
+        access_type = access['access_type']
+        access_level = access['access_level']
+        access_to = access['access_to']
+
+        self._check_access_type(share_proto, access_type)
 
 
-    def allow_access(self):
+    def _check_share_access(self, share_proto, access_type):
+        if share_proto == 'CIFS' and access_type != 'user':
+            msg = _('CIFS share can only access by USER.')
+            raise exception.InvalidShareAccess(reason=msg)
+        elif share_proto == 'NFS' and access_type != 'ip':
+            msg = _('NFS share can only access by IP.')
+            raise exception.InvalidShareAccess(reason=msg)
+        elif share_proto not in ('NFS', 'CIFS'):
+            msg = _('Unsupported protocol [%s].') % share_proto
+            raise exception.InvalidShareAccess(reason=msg)
+
+    def _nfs_allow_access(self):
+
+
+    def _cifs_aalow_access(self):
 
 
     def deny_access(self):
+
+
+    def _nfs_deny_access(self):
+
+
+    def _cifs_deny_access(self):
+
+
+    def create_user(self):
 
