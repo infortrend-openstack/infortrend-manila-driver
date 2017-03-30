@@ -82,6 +82,7 @@ class InfortrendNAS(object):
         self.location = 'a@0'
 
     def _execute(self, command_line):
+        command_line.extend(['-z', self.location])
         commands = ' '.join(command_line)
         manila_utils.check_ssh_injection(commands)
         LOG.debug('Executing: %(command)s', {'command': commands})
@@ -157,7 +158,7 @@ class InfortrendNAS(object):
 
     def _check_pools_setup(self):
         pool_list = self.pool_dict.keys()
-        command_line = ['folder', 'status', '-z', self.location]
+        command_line = ['folder', 'status']
         pool_data = self._execute(command_line)
         for pool_info in pool_data:
             pool_name = self._extract_pool_name(pool_info)
@@ -182,7 +183,7 @@ class InfortrendNAS(object):
 
     def update_pools_stats(self):
         pools = []
-        command_line = ['folder', 'status', '-z', self.location]
+        command_line = ['folder', 'status']
         pools_data = self._execute(command_line)
 
         for pool_info in pools_data:
@@ -217,8 +218,8 @@ class InfortrendNAS(object):
         pool_path = self.pool_dict[pool_name]['path']
         share_proto = share['share_proto']
 
-        command_line = ['folder', 'options', pool_id, pool_name,
-                        '-c', share['ID'], '-z', self.location]
+        command_line = ['folder', 'options', pool_id,
+                        pool_name, '-c', share['ID']]
         self._execute(command_line)
 
         self._set_share_size(pool_id, pool_name, share['ID'], share['size'])
@@ -251,8 +252,7 @@ class InfortrendNAS(object):
 
     def _set_share_size(self, pool_id, pool_name, share_id, share_size):
         command_line = ['fquota', 'create', pool_id, pool_name,
-                        share_id, str(share_size) + 'G',
-                        '-t', 'folder', '-z', self.location]
+                        share_id, str(share_size) + 'G', '-t', 'folder']
         self._execute(command_line)
 
         LOG.debug('Set Share [%(share_id)s] '
@@ -266,8 +266,8 @@ class InfortrendNAS(object):
         pool_id = self.pool_dict[pool_name]['id']
 
         if self._check_share_exist(pool_name, share['ID']):
-            command_line = ['folder', 'options', pool_id, pool_name,
-                            '-d', share['ID'], '-z', self.location]
+            command_line = ['folder', 'options', pool_id,
+                            pool_name, '-d', share['ID']]
             self._execute(command_line)
         else:
             LOG.warning('Share [%(share_id)s] is already deleted.', {
@@ -279,7 +279,7 @@ class InfortrendNAS(object):
     def _check_share_exist(self, pool_name, share_id):
         share_exist = False
         path = self.pool_dict[pool_name]['path']
-        command_line = ['pagelist', 'folder', path, '-z', self.location]
+        command_line = ['pagelist', 'folder', path]
         subfolders = self._execute(command_line)
         for subfolder in subfolders:
             if subfolder['name'] == share_id:
@@ -298,25 +298,44 @@ class InfortrendNAS(object):
             for access in add_rules:
                 self.allow_access(share, access, share_server)
 
-    def _clear_access(self):
+    def _clear_access(self, share, share_server=None):
+        pool_name = share_utils.extract_host(share['host'], level='pool')
+        pool_path = self.pool_dict[pool_name]['path']
+        share_path = pool_path + '/' + share['ID']
 
+        command_line = ['share', 'status', '-f', share_path]
+        share_status = self._execute(command_line)
+        host_list = share_status['nfs_detail']['hostList']
+
+        for host in host_list:
+            if host['host'] != '*':
+                command_line = ['share', 'options', share_path,
+                                'nfs', '-c', host['host']]
 
     def allow_access(self, share, access, share_server=None):
+        pool_name = share_utils.extract_host(share['host'], level='pool')
+        pool_path = self.pool_dict[pool_name]['path']
+        share_path = pool_path + '/' + share['ID']
         share_proto = share['share_proto']
-        share_id = share['ID']
         access_type = access['access_type']
         access_level = access['access_level']
         access_to = access['access_to']
 
-        self._check_access_type(share_proto, access_type)
+        self._check_access_legal(share_proto, access_type)
+
+        if share_proto == 'NFS':
+            command_line = ['share', share_path, 'nfs', 'on',
+                            '-h', access_to, '-p', access_level]
+
+        elif share_proto == 'CIFS':
 
 
-    def _check_share_access(self, share_proto, access_type):
+    def _check_access_legal(self, share_proto, access_type):
         if share_proto == 'CIFS' and access_type != 'user':
-            msg = _('CIFS share can only access by USER.')
+            msg = _('Infortrend CIFS share can only access by USER.')
             raise exception.InvalidShareAccess(reason=msg)
         elif share_proto == 'NFS' and access_type != 'ip':
-            msg = _('NFS share can only access by IP.')
+            msg = _('Infortrend NFS share can only access by IP.')
             raise exception.InvalidShareAccess(reason=msg)
         elif share_proto not in ('NFS', 'CIFS'):
             msg = _('Unsupported protocol [%s].') % share_proto
