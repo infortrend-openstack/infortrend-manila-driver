@@ -141,7 +141,7 @@ class InfortrendNAS(object):
 
             rc = int(content_dict['cliCode'][0]['Return'], 16)
             if rc == 0:
-                result = content_dict['data']
+                result = content_dict['data'][0]
             else:
                 result = content_dict['cliCode'][0]['CLI']
         else:
@@ -305,12 +305,21 @@ class InfortrendNAS(object):
 
         command_line = ['share', 'status', '-f', share_path]
         share_status = self._execute(command_line)
-        host_list = share_status['nfs_detail']['hostList']
 
-        for host in host_list:
-            if host['host'] != '*':
-                command_line = ['share', 'options', share_path,
-                                'nfs', '-c', host['host']]
+        if share['share_proto'] == 'NFS':
+            host_list = share_status['nfs_detail']['hostList']
+            for host in host_list:
+                if host['host'] != '*':
+                    command_line = ['share', 'options', share_path,
+                                    'nfs', '-c', host['host']]
+                    self._execute(command_line)
+
+        elif share['share_proto'] == 'CIFS':
+            user_list = share_status['cifs_detail']['userList']
+            for user in user_list:
+                command_line = ['acl', 'set', share_path,
+                                '-u', user, '-a', 'd']
+                self._execute(command_line)
 
     def allow_access(self, share, access, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
@@ -324,11 +333,46 @@ class InfortrendNAS(object):
         self._check_access_legal(share_proto, access_type)
 
         if share_proto == 'NFS':
-            command_line = ['share', share_path, 'nfs', 'on',
-                            '-h', access_to, '-p', access_level]
+            if not self._protocol_enabled(share_path, share_proto):
+                command_line = ['share', share_path, 'nfs', 'on',
+                                '-h', access_to, '-p', access_level]
+                self._execute(command_line)
+            else:
+                command_line = ['share', 'options', share_path, 'nfs',
+                                '-h', access_to, '-p', access_level]
+                self._execute(command_line)
 
         elif share_proto == 'CIFS':
+            if not self._protocol_enabled(share_path, share_proto):
+                command_line = ['share', share_path, 'cifs', 'on']
+                self._execute(command_line)
 
+            if access_level == constants.ACCESS_LEVEL_RW:
+                access_level = 'f'
+            elif access_level == constants.ACCESS_LEVEL_RO:
+                access_level = 'r'
+            else:
+                msg = _('Unsupported access_level: [%s].') % access_level
+                raise exception.InvalidInput(msg)
+
+            command_line = ['acl', 'set', share_path,
+                            '-u', access_to, '-a', access_level]
+            self._execute(command_line)
+
+        LOG.info('Share [%(share_id)s] access to [%(access_to)s] '
+                 'completed for protocol [%(share_proto)s]', {
+                     'share_id': share['ID'],
+                     'access_to': access_to,
+                     'share_proto': share_proto})
+
+    def _protocol_enabled(self, share_path, share_proto):
+        command_line = ['share', 'status', '-f', share_path]
+        share_status = self._execute(command_line)
+        check_enabled = share_status[share_proto]
+        if check_enabled:
+            return False
+        else:
+            return True
 
     def _check_access_legal(self, share_proto, access_type):
         if share_proto == 'CIFS' and access_type != 'user':
@@ -341,20 +385,29 @@ class InfortrendNAS(object):
             msg = _('Unsupported protocol [%s].') % share_proto
             raise exception.InvalidShareAccess(reason=msg)
 
-    def _nfs_allow_access(self):
+    def deny_access(self, share, access, share_server=None):
+        pool_name = share_utils.extract_host(share['host'], level='pool')
+        pool_path = self.pool_dict[pool_name]['path']
+        share_path = pool_path + '/' + share['ID']
+        share_proto = share['share_proto']
+        access_type = access['access_type']
+        access_to = access['access_to']
 
+        self._check_access_legal(share_proto, access_type)
 
-    def _cifs_aalow_access(self):
+        if share_proto == 'NFS':
+            command_line = ['share', 'options', share_path,
+                            'nfs', '-c', access_to]
+            self._execute(command_line)
 
+        elif share_proto == 'CIFS':
+            command_line = ['acl', 'set', share_path,
+                            '-u', access_to, '-a', 'd']
+            self._execute(command_line)
 
-    def deny_access(self):
-
-
-    def _nfs_deny_access(self):
-
-
-    def _cifs_deny_access(self):
-
-
-    def create_user(self):
+        LOG.info('Share [%(share_id)s] deny access [%(access_to)s] '
+                 'completed for protocol [%(share_proto)s]', {
+                     'share_id': share['ID'],
+                     'access_to': access_to,
+                     'share_proto': share_proto})
 
