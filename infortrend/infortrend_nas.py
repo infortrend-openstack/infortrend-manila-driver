@@ -134,7 +134,7 @@ class InfortrendNAS(object):
             try:
                 content_dict = eval(content)
             except:
-                msg = _('Failed to parse data: %(content)s to dictionary') % {
+                msg = _('Failed to parse data: %(content)s to dictionary.') % {
                             'content': content}
                 LOG.error(msg)
                 raise exception.InfortrendNASException(err=msg)
@@ -347,6 +347,12 @@ class InfortrendNAS(object):
                 command_line = ['share', share_path, 'cifs', 'on']
                 self._execute(command_line)
 
+            if not self._check_user_exist(access_to):
+                msg = _('Please create user [%(user)s] in advance.') % {
+                            'user': access_to}
+                LOG.error(msg)
+                raise exception.InfortrendNASException(err=msg)
+
             if access_level == constants.ACCESS_LEVEL_RW:
                 access_level = 'f'
             elif access_level == constants.ACCESS_LEVEL_RO:
@@ -371,8 +377,15 @@ class InfortrendNAS(object):
         check_enabled = share_status[share_proto]
         if check_enabled:
             return False
-        else:
-            return True
+        return True
+
+    def _check_user_exist(self, user_name):
+        command_line = ['useradmin', 'user', 'list']
+        user_list = self._execute(command_line)
+        for user in user_list:
+            if user['Name'] == user_name:
+                return True
+        return False
 
     def _check_access_legal(self, share_proto, access_type):
         if share_proto == 'CIFS' and access_type != 'user':
