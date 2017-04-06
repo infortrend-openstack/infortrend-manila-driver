@@ -177,7 +177,7 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         LOG.debug('Creating share: [%s].' % share)
 
-        return self.ift_nas.create_share(share)
+        return self.ift_nas.create_share(share, share_server)
 
 
     def delete_share(self, context, share, share_server=None):
@@ -185,7 +185,7 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         LOG.debug('Deleting share: [%s].' % share)
 
-        return self.ift_nas.delete_share(share)
+        return self.ift_nas.delete_share(share, share_server)
 
 
     def get_pool(self, share):
@@ -193,6 +193,7 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         :param share: The share hosted by the driver.
         """
+        return self.ift_nas.get_pool(share)
 
     def ensure_share(self, context, share, share_server=None):
         """Invoked to ensure that share is exported.
@@ -203,14 +204,15 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         :return None or list with export locations
         """
+        return self.ift_nas.ensure_share(share, share_server)
 
     def allow_access(self, context, share, access, share_server=None):
         """Allow access to the share."""
-
+        return self.ift_nas.allow_access(share, access, share_server)
 
     def deny_access(self, context, share, access, share_server=None):
         """Deny access to the share."""
-
+        return self.ift_nas.deny_access(share, access, share_server)
 
     def manage_existing(self, share, driver_options):
         """Brings an existing share under Manila management.
@@ -232,6 +234,7 @@ class InfortrendNASDriver(driver.ShareDriver):
         :return: share_update dictionary with required key 'size',
                  which should contain size of the share.
         """
+        return self.ift_nas.manage_existing(share, driver_options)
 
     def extend_share(self, share, new_size, share_server=None):
         """Extends size of existing share.
@@ -240,7 +243,7 @@ class InfortrendNASDriver(driver.ShareDriver):
         :param new_size: New size of share (new_size > share['size'])
         :param share_server: Optional -- Share server model
         """
-
+        return self.ift_nas.extend_share(share, new_size, share_server)
 
 
 

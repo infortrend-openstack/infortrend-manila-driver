@@ -212,7 +212,7 @@ class InfortrendNAS(object):
 
         return pools
 
-    def create_share(self, share):
+    def create_share(self, share, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_id = self.pool_dict[pool_name]['id']
         pool_path = self.pool_dict[pool_name]['path']
@@ -261,7 +261,7 @@ class InfortrendNAS(object):
                       'share_size': share_size})
         return
 
-    def delete_share(self, share):
+    def delete_share(self, share, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_id = self.pool_dict[pool_name]['id']
 
@@ -423,4 +423,25 @@ class InfortrendNAS(object):
                      'share_id': share['ID'],
                      'access_to': access_to,
                      'share_proto': share_proto})
+
+    def get_pool(self, share):
+
+
+    def ensure_share(self, share, share_server=None):
+
+
+    def manage_existing(self, share, driver_options):
+
+
+    def extend_share(self, share, new_size, share_server=None):
+
+
+
+
+
+
+
+
+
+
 
