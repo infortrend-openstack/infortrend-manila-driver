@@ -236,6 +236,21 @@ class InfortrendNASDriver(driver.ShareDriver):
         """
         return self.ift_nas.manage_existing(share, driver_options)
 
+    def unmanage(self, share):
+        """Removes the specified share from Manila management.
+
+        Does not delete the underlying backend share.
+
+        For most drivers, this will not need to do anything.  However, some
+        drivers might use this call as an opportunity to clean up any
+        Manila-specific configuration that they have associated with the
+        backend share.
+
+        If provided share cannot be unmanaged, then raise an
+        UnmanageInvalidShare exception, specifying a reason for the failure.
+        """
+        return self.ift_nas.unmanage(share)
+
     def extend_share(self, share, new_size, share_server=None):
         """Extends size of existing share.
 
@@ -244,29 +259,3 @@ class InfortrendNASDriver(driver.ShareDriver):
         :param share_server: Optional -- Share server model
         """
         return self.ift_nas.extend_share(share, new_size, share_server)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
