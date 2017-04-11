@@ -73,6 +73,7 @@ class InfortrendNAS(object):
     def __init__(self, nas_ip, username, password, ssh_key,
                  retries, timeout, pool_dict):
         self.nas_ip = nas_ip
+        self.port = 22
         self.username = username
         self.password = password
         self.ssh_key = ssh_key
@@ -103,12 +104,12 @@ class InfortrendNAS(object):
     @retry_cli
     def _ssh_execute(self, commands):
         if not self.sshpool:
-            self.sshpool = utils.SSHPool(ip=self.nas_ip,
-                                         port=self.port,
-                                         conn_timeout=None,
-                                         login=self.username,
-                                         password=self.password,
-                                         privatekey=self.ssh_key)
+            self.sshpool = manila_utils.SSHPool(ip=self.nas_ip,
+                                                port=self.port,
+                                                conn_timeout=None,
+                                                login=self.username,
+                                                password=self.password,
+                                                privatekey=self.ssh_key)
 
         with self.sshpool.item() as ssh:
             try:
@@ -431,7 +432,7 @@ class InfortrendNAS(object):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         if not pool_name:
             for pool in self.pool_dict.keys():
-                if self._check_share_exist(pool, share['id'])
+                if self._check_share_exist(pool, share['id']):
                     pool_name = pool
                     break
         return pool_name

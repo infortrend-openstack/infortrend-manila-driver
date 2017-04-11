@@ -21,7 +21,6 @@ from oslo_log import log
 from oslo_utils import excutils
 from oslo_utils import importutils
 
-from manila.share import driver
 from manila.share.drivers.infortrend import infortrend_nas
 from manila.common import constants
 from manila import exception
@@ -33,22 +32,22 @@ LOG = log.getLogger(__name__)
 
 infortrend_nas_opts = [
     cfg.StrOpt('infortrend_nas_ip',
-               default='',
+               default=None,
                help='Infortrend nas ip. '
                'It is the ip for management.'),
     cfg.StrOpt('infortrend_nas_user',
                default='manila',
                help='Infortrend nas username.'),
     cfg.StrOpt('infortrend_nas_password',
-               default='',
+               default=None,
                help='Infortrend nas password. '
                'This is not necessary '
                'if infortrend_nas_ssh_key is set.'),
     cfg.StrOpt('infortrend_nas_ssh_key',
-               default='',
+               default=None,
                help='Infortrend nas ssh key.'),
     cfg.StrOpt('infortrend_share_pools',
-               default='',
+               default=None,
                help='Infortrend nas pool name list. '
                'It is separated with comma.'),
     cfg.IntOpt('infortrend_cli_max_retries',
