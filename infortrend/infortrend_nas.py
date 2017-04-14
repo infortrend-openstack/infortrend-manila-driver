@@ -29,6 +29,7 @@ from manila.i18n import _
 from manila.share import driver
 from manila import utils as manila_utils
 from manila.share import utils as share_utils
+from manila.share.drivers.infortrend import processutils
 
 LOG = log.getLogger(__name__)
 DEFAULT_RETRY_TIME = 5
@@ -81,6 +82,7 @@ class InfortrendNAS(object):
         self.cli_timeout = timeout
         self.pool_dict = pool_dict
         self.command = ""
+        self.ssh = None
         self.sshpool = None
         self.location = 'a@0'
 
@@ -103,29 +105,33 @@ class InfortrendNAS(object):
 
     @retry_cli
     def _ssh_execute(self, commands):
-        if not self.sshpool:
+        if not (self.sshpool and self.ssh):
             self.sshpool = manila_utils.SSHPool(ip=self.nas_ip,
                                                 port=self.port,
                                                 conn_timeout=None,
                                                 login=self.username,
                                                 password=self.password,
                                                 privatekey=self.ssh_key)
+            self.ssh = self.sshpool.create()
 
-        with self.sshpool.item() as ssh:
-            try:
-                out, err = processutils.ssh_execute(
-                    ssh, commands, check_exit_code=True)
-                rc, result = self._parser(out)
-            except processutils.ProcessExecutionError as pe:
-                rc = pe.exit_code
-                result = pe.stdout
-                result = result.replace('\n', '\\n')
-                LOG.error(
-                    'Error on execute ssh command. '
-                    'Error code: %(exit_code)d Error msg: %(result)s', {
-                        'exit_code': pe.exit_code, 'result': result})
+        if not self.ssh.get_transport().is_active():
+            self.ssh_pool.remove(self.ssh)
+            self.ssh = self.ssh_pool.create()
 
-            return rc, result
+        try:
+            out, err = processutils.ssh_execute(
+                self.ssh, commands, check_exit_code=True)
+            rc, result = self._parser(out)
+        except processutils.ProcessExecutionError as pe:
+            rc = pe.exit_code
+            result = pe.stdout
+            result = result.replace('\n', '\\n')
+            LOG.error(
+                'Error on execute ssh command. '
+                'Error code: %(exit_code)d Error msg: %(result)s', {
+                    'exit_code': pe.exit_code, 'result': result})
+
+        return rc, result
 
     def _parser(self, content=None):
 
