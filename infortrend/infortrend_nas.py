@@ -137,25 +137,24 @@ class InfortrendNAS(object):
 
         content = content.replace("\r", "")
         content = content.strip()
-        content = content.split("\n")
-        LOG.debug(content)
+        json_string = content.replace("'", "\"")
+        cli_data = json_string.split("\n")[2]
+        LOG.debug(cli_data)
 
-        json_string = content[2].replace("'", "\"")
-
-        if json_string:
+        if cli_data:
             try:
-                content_dict = json.loads(json_string)
+                data_dict = json.loads(cli_data)
             except:
-                msg = _('Failed to parse data: %(content)s to dictionary.') % {
-                            'content': json_string}
+                msg = _('Failed to parse data: %(cli_data)s to dictionary.') % {
+                            'content': cli_data}
                 LOG.error(msg)
                 raise exception.InfortrendNASException(err=msg)
 
-            rc = int(content_dict['cliCode'][0]['Return'], 16)
+            rc = int(data_dict['cliCode'][0]['Return'], 16)
             if rc == 0:
-                result = content_dict['data'][0]
+                result = data_dict['data']
             else:
-                result = content_dict['cliCode'][0]['CLI']
+                result = data_dict['cliCode'][0]['CLI']
         else:
             rc = -1
             result = None
