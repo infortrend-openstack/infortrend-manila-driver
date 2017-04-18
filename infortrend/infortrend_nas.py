@@ -243,11 +243,11 @@ class InfortrendNAS(object):
     def _export_location(self, share_name, share_proto, pool_path=None):
         location_data = {
             'ip': self.nas_ip,
-            'pool': pool_path,
+            'pool_path': pool_path,
             'name': share_name,
         }
         if share_proto.lower() == 'nfs':
-            location = ("%(ip)s:/%(pool)s/%(name)s" % location_data)
+            location = ("%(ip)s:%(pool_path)s/%(name)s" % location_data)
         elif share_proto.lower() == 'cifs':
             location = ("\\\\%(ip)s\\%(name)s" % location_data)
         else:
@@ -320,21 +320,21 @@ class InfortrendNAS(object):
 
         command_line = ['share', 'status', '-f', share_path]
         share_status = self._execute(command_line)
+        if share_status:
+            if share['share_proto'].lower() == 'nfs':
+                host_list = share_status['nfs_detail']['hostList']
+                for host in host_list:
+                    if host['host'] != '*':
+                        command_line = ['share', 'options', share_path,
+                                        'nfs', '-c', host['host']]
+                        self._execute(command_line)
 
-        if share['share_proto'].lower() == 'nfs':
-            host_list = share_status['nfs_detail']['hostList']
-            for host in host_list:
-                if host['host'] != '*':
-                    command_line = ['share', 'options', share_path,
-                                    'nfs', '-c', host['host']]
+            elif share['share_proto'].lower() == 'cifs':
+                user_list = share_status['cifs_detail']['userList']
+                for user in user_list:
+                    command_line = ['acl', 'set', share_path,
+                                    '-u', user, '-a', 'd']
                     self._execute(command_line)
-
-        elif share['share_proto'].lower() == 'cifs':
-            user_list = share_status['cifs_detail']['userList']
-            for user in user_list:
-                command_line = ['acl', 'set', share_path,
-                                '-u', user, '-a', 'd']
-                self._execute(command_line)
 
     def allow_access(self, share, access, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
