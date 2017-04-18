@@ -14,6 +14,7 @@
 #    under the License.
 
 import os
+import json
 
 from oslo_config import cfg
 from oslo_log import log
@@ -29,7 +30,6 @@ from manila.i18n import _
 from manila.share import driver
 from manila import utils as manila_utils
 from manila.share import utils as share_utils
-from manila.share.drivers.infortrend import processutils
 
 LOG = log.getLogger(__name__)
 DEFAULT_RETRY_TIME = 5
@@ -137,14 +137,17 @@ class InfortrendNAS(object):
 
         content = content.replace("\r", "")
         content = content.strip()
+        content = content.split("\n")
         LOG.debug(content)
 
-        if content:
+        json_string = content[2].replace("'", "\"")
+
+        if json_string:
             try:
-                content_dict = eval(content)
+                content_dict = json.loads(json_string)
             except:
                 msg = _('Failed to parse data: %(content)s to dictionary.') % {
-                            'content': content}
+                            'content': json_string}
                 LOG.error(msg)
                 raise exception.InfortrendNASException(err=msg)
 
