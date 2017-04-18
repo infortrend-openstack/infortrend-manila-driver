@@ -388,8 +388,8 @@ class InfortrendNAS(object):
         share_status = self._execute(command_line)
         check_enabled = share_status[share_proto]
         if check_enabled:
-            return False
-        return True
+            return True
+        return False
 
     def _check_user_exist(self, user_name):
         command_line = ['useradmin', 'user', 'list']
