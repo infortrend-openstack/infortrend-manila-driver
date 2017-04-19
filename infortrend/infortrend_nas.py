@@ -276,7 +276,7 @@ class InfortrendNAS(object):
 
         for share_quota in quota_status:
             if share_quota['name'] == share_name:
-                share_size = round(bi_to_gi(share_quota['quota']), 2)
+                share_size = round(bi_to_gi(int(share_quota['quota'])), 2)
                 break
 
         return share_size
