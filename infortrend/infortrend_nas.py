@@ -320,22 +320,24 @@ class InfortrendNAS(object):
         share_path = pool_path + '/' + share['id']
         share_proto = share['share_proto'].lower()
 
-        command_line = ['share', 'status', '-f', share_path]
-        share_status = self._execute(command_line)
-        if share_status:
-            if share_proto == 'nfs':
-                host_list = share_status['nfs_detail']['hostList']
+        if share_proto == 'nfs':
+            command_line = ['share', 'status', '-f', share_path]
+            nfs_status = self._execute(command_line)
+            if nfs_status:
+                host_list = nfs_status['nfs_detail']['hostList']
                 for host in host_list:
                     if host['host'] != '*':
                         command_line = ['share', 'options', share_path,
                                         'nfs', '-c', host['host']]
                         self._execute(command_line)
 
-            elif share_proto == 'cifs':
-                user_list = share_status['cifs_detail']['userList']
-                for user in user_list:
-                    command_line = ['acl', 'set', share_path,
-                                    '-u', user, '-a', 'd']
+        elif share_proto == 'cifs':
+            command_line = ['acl', 'get', share_path]
+            cifs_status = self._execute(command_line)
+            for cifs_rule in cifs_status:
+                if cifs_rule['type'] == 'user':
+                    command_line = ['acl', 'set', share_path, '-u',
+                                    cifs_rule['name'], '-a', 'd']
                     self._execute(command_line)
 
     def allow_access(self, share, access, share_server=None):
@@ -385,7 +387,7 @@ class InfortrendNAS(object):
         if not self._check_proto_enabled(share_path, share_proto):
             command_line = ['share', share_path, share_proto, 'on']
             if share_proto == 'cifs':
-                command_line.append('-n', share_name)
+                command_line.extend(['-n', share_name])
             self._execute(command_line)
 
     def _check_proto_enabled(self, share_path, share_proto):
