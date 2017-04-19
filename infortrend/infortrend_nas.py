@@ -386,9 +386,10 @@ class InfortrendNAS(object):
     def _check_proto_enabled(self, share_path, share_proto):
         command_line = ['share', 'status', '-f', share_path]
         share_status = self._execute(command_line)
-        check_enabled = share_status[share_proto]
-        if check_enabled:
-            return True
+        if share_status:
+            check_enabled = share_status[share_proto]
+            if check_enabled:
+                return True
         return False
 
     def _check_user_exist(self, user_name):
@@ -426,6 +427,10 @@ class InfortrendNAS(object):
             self._execute(command_line)
 
         elif share_proto.lower() == 'cifs':
+            if not self._check_user_exist(access_to):
+                LOG.warning('User [%(user)s] had been removed.', {
+                                'user': access_to})
+                return
             command_line = ['acl', 'set', share_path,
                             '-u', access_to, '-a', 'd']
             self._execute(command_line)
