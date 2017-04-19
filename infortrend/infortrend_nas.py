@@ -269,11 +269,15 @@ class InfortrendNAS(object):
         return
 
     def _get_share_size(self, pool_id, pool_name, share_name):
-        command_line = ['fquota', 'status', pool_id, pool_name,
-                        share_name, '-t', 'folder']
-        share_quota = self._execute(command_line)
+        share_size = None
+        command_line = ['fquota', 'status', pool_id,
+                        pool_name, '-t', 'folder']
+        quota_status = self._execute(command_line)
 
-        share_size = round(bi_to_gi(share_quota['quota']), 2)
+        for share_quota in quota_status:
+            if share_quota['name'] == share_name:
+                share_size = round(bi_to_gi(share_quota['quota']), 2)
+                break
 
         return share_size
 
@@ -506,6 +510,13 @@ class InfortrendNAS(object):
 
         share_size = self._get_share_size(pool_id, pool_name, ift_share_name)
 
+        if not share_size:
+            msg = _('Share [%(share_name)s] has no size limitation, '
+                    'please set it first for Openstack management.') % {
+                        'share_name': ift_share_name}
+            LOG.error(msg)
+            raise exception.InfortrendNASException(err=msg)
+
         # rename share name
         command_line = ['folder', 'options', pool_id,
                         pool_name, '-e', ift_share_name, share['id']]
@@ -537,10 +548,10 @@ class InfortrendNAS(object):
                 ift_share_name = location[3]
 
         if not (ip and ift_share_name):
-            msg = _('Export location error, ip: [%(ip)s], '
-                    'ift_share_name: [%(ift_share_name)s].') % {
+            msg = _('Export location error, please check '
+                    'ip: [%(ip)s], share_name: [%(share_name)s].') % {
                         'ip': ip,
-                        'ift_share_name': ift_share_name}
+                        'share_name': ift_share_name}
             LOG.error(msg)
             raise exception.InfortrendNASException(err=msg)
 
