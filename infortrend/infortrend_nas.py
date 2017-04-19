@@ -541,7 +541,7 @@ class InfortrendNAS(object):
             location = input_location.split(':/')
             if len(location) == 2:
                 ip = location[0]
-                ift_share_name = location[1].split('/')[1]
+                ift_share_name = location[1].split('/')[2]
         elif share_proto == 'cifs':
             location = input_location.split('\\')
             if (len(location) == 4 and
