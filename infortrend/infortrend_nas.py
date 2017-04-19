@@ -394,7 +394,7 @@ class InfortrendNAS(object):
         command_line = ['share', 'status', '-f', share_path]
         share_status = self._execute(command_line)
         if share_status:
-            check_enabled = share_status[share_proto]
+            check_enabled = share_status[0][share_proto]
             if check_enabled:
                 return True
         return False
