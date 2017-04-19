@@ -572,7 +572,7 @@ class InfortrendNAS(object):
                             'share_name': share['share_id']})
             return
 
-        unmanage_name = self.UNMANAGE_PREFIX % share['share_id'][:20]
+        unmanage_name = self.UNMANAGE_PREFIX % share['display_name']
 
         # rename share name
         command_line = ['folder', 'options', pool_id,
