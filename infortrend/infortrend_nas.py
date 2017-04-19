@@ -350,7 +350,10 @@ class InfortrendNAS(object):
         access_level = access['access_level']
         access_to = access['access_to']
 
-        self._check_access_legal(share_proto, access_type)
+        msg = self._check_access_legal(share_proto, access_type)
+        if msg:
+            raise exception.InvalidShareAccess(reason=_(msg))
+
         self._ensure_protocol_on(share_path, share_proto, share_name)
 
         if share_proto == 'nfs':
@@ -408,15 +411,14 @@ class InfortrendNAS(object):
         return False
 
     def _check_access_legal(self, share_proto, access_type):
+        msg = None
         if share_proto == 'cifs' and access_type != 'user':
-            msg = _('Infortrend CIFS share can only access by USER.')
-            raise exception.InvalidShareAccess(reason=msg)
+            msg = 'Infortrend CIFS share can only access by USER.'
         elif share_proto == 'nfs' and access_type != 'ip':
-            msg = _('Infortrend NFS share can only access by IP.')
-            raise exception.InvalidShareAccess(reason=msg)
+            msg = 'Infortrend NFS share can only access by IP.'
         elif share_proto not in ('nfs', 'cifs'):
-            msg = _('Unsupported protocol [%s].') % share_proto
-            raise exception.InvalidShareAccess(reason=msg)
+            msg = 'Unsupported protocol [%s].' % share_proto
+        return msg
 
     def deny_access(self, share, access, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
@@ -426,7 +428,10 @@ class InfortrendNAS(object):
         access_type = access['access_type']
         access_to = access['access_to']
 
-        self._check_access_legal(share_proto, access_type)
+        msg = self._check_access_legal(share_proto, access_type)
+        if msg:
+            LOG.warning(msg)
+            return
 
         if share_proto == 'nfs':
             command_line = ['share', 'options', share_path,
