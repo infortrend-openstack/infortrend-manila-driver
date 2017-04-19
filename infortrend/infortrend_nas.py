@@ -349,7 +349,7 @@ class InfortrendNAS(object):
         pool_path = self.pool_dict[pool_name]['path']
         share_path = pool_path + '/' + share['id']
         share_proto = share['share_proto'].lower()
-        cifs_name = share['display_name']
+        display_name = share['display_name']
         access_type = access['access_type']
         access_level = access['access_level']
         access_to = access['access_to']
@@ -358,7 +358,7 @@ class InfortrendNAS(object):
         if msg:
             raise exception.InvalidShareAccess(reason=_(msg))
 
-        self._ensure_protocol_on(share_path, share_proto, cifs_name)
+        self._ensure_protocol_on(share_path, share_proto, display_name)
 
         if share_proto == 'nfs':
             command_line = ['share', 'options', share_path, 'nfs',
@@ -489,7 +489,7 @@ class InfortrendNAS(object):
         pool_id = self.pool_dict[pool_name]['id']
         pool_path = self.pool_dict[pool_name]['path']
         input_location = share['export_locations'][0]['path']
-        cifs_name = share['display_name']
+        display_name = share['display_name']
 
         ip, ift_share_name = self._parse_location(input_location, share_proto)
 
@@ -510,7 +510,7 @@ class InfortrendNAS(object):
             raise exception.InfortrendNASException(err=msg)
 
         share_path = pool_path + '/' + ift_share_name
-        self._ensure_protocol_on(share_path, share_proto, cifs_name)
+        self._ensure_protocol_on(share_path, share_proto, display_name)
         share_size = self._get_share_size(pool_id, pool_name, ift_share_name)
 
         if not share_size:
@@ -523,14 +523,17 @@ class InfortrendNAS(object):
         # rename share name
         command_line = ['folder', 'options', pool_id,
                         pool_name, '-e', ift_share_name, share['id']]
+        self._execute(command_line)
 
         location = self._export_location(share, share_proto, pool_path)
 
-        LOG.info('Successfully Manage Share [%(share_name)s] '
-                 'Size [%(size)s G] Protocol [%(share_proto)s].', {
-                     'share_name': ift_share_name,
+        LOG.info('Successfully Manage Infortrend Share [%(ift_name)s], '
+                 'Size: [%(size)s G], Protocol: [%(share_proto)s], '
+                 'Display name: [%(display_name)s].', {
+                     'ift_name': ift_share_name,
+                     'size': share_size,
                      'share_proto': share_proto,
-                     'size': share_size})
+                     'display_name': display_name})
 
         return {'size': share_size, 'export_locations': location}
 
@@ -574,6 +577,7 @@ class InfortrendNAS(object):
         # rename share name
         command_line = ['folder', 'options', pool_id,
                         pool_name, '-e', share['id'], unmanage_name]
+        self._execute(command_line)
 
         LOG.info('Successfully Unmanage Share [%(share_name)s], '
                  'and rename it to [%(new_name)s].', {
