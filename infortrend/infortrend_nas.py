@@ -228,12 +228,15 @@ class InfortrendNAS(object):
         pool_id = self.pool_dict[pool_name]['id']
         pool_path = self.pool_dict[pool_name]['path']
         share_proto = share['share_proto'].lower()
+        share_path = pool_path + '/' + share['share_id']
+        display_name = share['display_name']
 
         command_line = ['folder', 'options', pool_id,
                         pool_name, '-c', share['share_id']]
         self._execute(command_line)
 
         self._set_share_size(pool_id, pool_name, share['share_id'], share['size'])
+        self._ensure_protocol_on(share_path, share_proto, display_name)
 
         LOG.info('Create Share [%(share_id)s] completed.', {
                      'share_id': share['share_id']})
@@ -357,8 +360,6 @@ class InfortrendNAS(object):
         msg = self._check_access_legal(share_proto, access_type)
         if msg:
             raise exception.InvalidShareAccess(reason=_(msg))
-
-        self._ensure_protocol_on(share_path, share_proto, display_name)
 
         if share_proto == 'nfs':
             command_line = ['share', 'options', share_path, 'nfs',
