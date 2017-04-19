@@ -477,7 +477,7 @@ class InfortrendNAS(object):
         LOG.info('Successfully Extend Share [%(share_id)s] '
                  'to size [%(new_size)s G].', {
                      'share_id': share['id'],
-                     'new_size': access_to})
+                     'new_size': new_size})
 
     def manage_existing(self, share, driver_options):
         share_proto = share['share_proto'].lower()
