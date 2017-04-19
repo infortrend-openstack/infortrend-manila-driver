@@ -245,7 +245,7 @@ class InfortrendNAS(object):
             'ip': self.nas_ip,
             'pool_path': pool_path,
             'id': share['id'],
-            'name': share['name'],
+            'name': share['display_name'],
         }
         if share_proto == 'nfs':
             location = ("%(ip)s:%(pool_path)s/%(id)s" % location_data)
@@ -345,7 +345,7 @@ class InfortrendNAS(object):
         pool_path = self.pool_dict[pool_name]['path']
         share_path = pool_path + '/' + share['id']
         share_proto = share['share_proto'].lower()
-        share_name = share['name']
+        share_name = share['display_name']
         access_type = access['access_type']
         access_level = access['access_level']
         access_to = access['access_to']
