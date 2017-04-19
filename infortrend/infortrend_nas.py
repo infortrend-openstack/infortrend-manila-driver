@@ -527,12 +527,12 @@ class InfortrendNAS(object):
         location = self._export_location(share, share_proto, pool_path)
 
         LOG.info('Successfully Manage Share [%(share_name)s] '
-                 'Size [%(size)s] Protocol [%(share_proto)s].', {
+                 'Size [%(size)s G] Protocol [%(share_proto)s].', {
                      'share_name': ift_share_name,
                      'share_proto': share_proto,
                      'size': share_size})
 
-        return {'size': share_size, 'export_locations': [location]}
+        return {'size': share_size, 'export_locations': location}
 
     def _parse_location(self, input_location, share_proto):
         ip = None
