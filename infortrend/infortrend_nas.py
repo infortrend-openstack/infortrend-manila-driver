@@ -362,6 +362,7 @@ class InfortrendNAS(object):
             raise exception.InvalidShareAccess(reason=_(msg))
 
         if share_proto == 'nfs':
+            self._check_nfs_access(share_path)
             command_line = ['share', 'options', share_path, 'nfs',
                             '-h', access_to, '-p', access_level]
             self._execute(command_line)
@@ -390,6 +391,22 @@ class InfortrendNAS(object):
                      'share_id': share['share_id'],
                      'access_to': access_to,
                      'share_proto': share_proto})
+
+    def _check_nfs_access(self, share_path):
+        command_line = ['share', 'status', '-f', share_path]
+        nfs_status = self._execute(command_line)
+        if nfs_status:
+            host_list = nfs_status['nfs_detail']['hostList']
+            for host in host_list:
+                if host['host'] == '*':
+                    self._share_protocol_restart(share_path, 'nfs')
+                    break
+
+    def _share_protocol_restart(self, share_path, share_proto):
+        command_line = ['share', share_path, share_proto, 'off']
+        self._execute(command_line)
+        command_line = ['share', share_path, share_proto, 'on']
+        self._execute(command_line)
 
     def _ensure_protocol_on(self, share_path, share_proto, cifs_name):
         if not self._check_proto_enabled(share_path, share_proto):
