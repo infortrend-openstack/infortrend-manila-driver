@@ -50,6 +50,10 @@ infortrend_nas_opts = [
                default=None,
                help='Infortrend nas pool name list. '
                'It is separated with comma.'),
+    cfg.StrOpt('infortrend_share_channels',
+               default=None,
+               help='Infortrend channels for file service. '
+               'It is separated with comma.'),
     cfg.IntOpt('infortrend_cli_max_retries',
                default=5,
                help='Maximum retry times for cli.'),
@@ -95,9 +99,10 @@ class InfortrendNASDriver(driver.ShareDriver):
             raise exception.InvalidParameterValue(err=msg)
 
         pool_dict = self._init_pool_dict()
+        channel_dict = self._init_channel_dict()
         self.ift_nas = infortrend_nas.InfortrendNAS(nas_ip, username, password,
                                                     ssh_key, retries, timeout,
-                                                    pool_dict)
+                                                    pool_dict, channel_dict)
 
     def _init_pool_dict(self):
         temp_pool_dict = {}
@@ -111,6 +116,19 @@ class InfortrendNASDriver(driver.ShareDriver):
             temp_pool_dict[pool.strip()] = {}
 
         return temp_pool_dict
+
+    def _init_channel_dict(self):
+        temp_ch_dict = {}
+        channels = self.configuration.safe_get('infortrend_share_channels')
+        if not channels:
+            msg = _('The infortrend_share_channels is not set.')
+            raise exception.InvalidParameterValue(err=msg)
+
+        tmp_ch_list = channels.split(',')
+        for channel in tmp_ch_list:
+            temp_ch_dict[channel.strip()] = {}
+
+        return temp_ch_dict
 
     def do_setup(self, context):
         """Any initialization the share driver does while starting."""

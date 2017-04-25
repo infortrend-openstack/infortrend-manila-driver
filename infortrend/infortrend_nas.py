@@ -72,7 +72,7 @@ class InfortrendNAS(object):
     UNMANAGE_PREFIX = 'manila-unmanage-%s'
 
     def __init__(self, nas_ip, username, password, ssh_key,
-                 retries, timeout, pool_dict):
+                 retries, timeout, pool_dict, channel_dict):
         self.nas_ip = nas_ip
         self.port = 22
         self.username = username
@@ -81,6 +81,7 @@ class InfortrendNAS(object):
         self.cli_retry_time = retries
         self.cli_timeout = timeout
         self.pool_dict = pool_dict
+        self.channel_dict = channel_dict
         self.command = ""
         self.ssh = None
         self.sshpool = None
@@ -120,7 +121,8 @@ class InfortrendNAS(object):
 
         try:
             out, err = processutils.ssh_execute(
-                self.ssh, commands, check_exit_code=True)
+                self.ssh, commands,
+                timeout=self.cli_timeout, check_exit_code=True)
             rc, result = self._parser(out)
         except processutils.ProcessExecutionError as pe:
             rc = pe.exit_code
@@ -134,7 +136,6 @@ class InfortrendNAS(object):
         return rc, result
 
     def _parser(self, content=None):
-
         content = content.replace("\r", "")
         content = content.strip()
         json_string = content.replace("'", "\"")
@@ -162,10 +163,39 @@ class InfortrendNAS(object):
         return rc, result
 
     def do_setup(self):
-        pass
+        self._ensure_service_on('nfs')
+        self._ensure_service_on('cifs')
 
     def check_for_setup_error(self):
         self._check_pools_setup()
+        self._check_channels_setup()
+
+    def _ensure_service_on(self, proto, slot='A'):
+        command_line = ['service', 'status', proto]
+        service_status = self._execute(command_line)
+        if not service_status[0][slot][proto.upper()]['enabled']:
+            command_line = ['service', 'restart', proto]
+            self._execute(command_line)
+
+    def _check_channels_setup(self):
+        channel_list = list(self.channel_dict.keys())
+        command_line = ['ifconfig', 'inet', 'show']
+        channels_status = self._execute(command_line)
+        for channel in channels_status:
+            if 'CH' in channel['datalink']:
+                ch = channel['datalink'].strip('CH')
+                if ch in self.channel_dict.keys():
+                    self.channel_dict[ch] = channel['IP']
+                    channel_list.remove(ch)
+                    if channel['status'] == 'DOWN':
+                        LOG.warning('Channel [%(ch)s] status '
+                                    'is down, please check.', {
+                                        'ch': ch})
+        if len(channel_list) != 0:
+            msg = _('Channel setting %(channel_list)s is invalid!') % {
+                        'channel_list': channel_list}
+            LOG.error(msg)
+            raise exception.InfortrendNASException(message=msg)
 
     def _check_pools_setup(self):
         pool_list = self.pool_dict.keys()
@@ -184,7 +214,7 @@ class InfortrendNAS(object):
             msg = _('Please create %(pool_list)s pool in advance!') % {
                         'pool_list': pool_list}
             LOG.error(msg)
-            raise exception.VolumeDriverException(message=msg)
+            raise exception.InfortrendNASException(message=msg)
 
     def _extract_pool_name(self, pool_info):
         return pool_info['directory'].split('/')[2]
