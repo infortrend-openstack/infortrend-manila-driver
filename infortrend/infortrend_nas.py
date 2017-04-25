@@ -274,21 +274,22 @@ class InfortrendNAS(object):
         return self._export_location(share, share_proto, pool_path)
 
     def _export_location(self, share, share_proto, pool_path=None):
+        location = []
         location_data = {
-            'ip': self.nas_ip,
             'pool_path': pool_path,
             'id': share['share_id'],
             'name': share['display_name'],
         }
-        if share_proto == 'nfs':
-            location = ("%(ip)s:%(pool_path)s/%(id)s" % location_data)
-        elif share_proto == 'cifs':
-            location = ("\\\\%(ip)s\\%(name)s" % location_data)
-        else:
-            msg = _('Unsupported protocol: [%s].') % share_proto
-            raise exception.InvalidInput(msg)
+        for ip in sorted(self.channel_dict.keys()):
+            if share_proto == 'nfs':
+                location.append( ip + ':%(pool_path)s/%(id)s' % location_data)
+            elif share_proto == 'cifs':
+                location.append('\\\\' + ip + '\\%(name)s' % location_data)
+            else:
+                msg = _('Unsupported protocol: [%s].') % share_proto
+                raise exception.InvalidInput(msg)
 
-        return [location]
+        return location
 
     def _set_share_size(self, pool_id, pool_name, share_name, share_size):
         command_line = ['fquota', 'create', pool_id, pool_name,
