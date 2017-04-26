@@ -154,6 +154,7 @@ class InfortrendNASDriver(driver.ShareDriver):
                     reserved_percentage=self.configuration.
                     reserved_share_percentage,
                     pools=self.ift_nas.update_pools_stats())
+        LOG.debug('Infortrend pools status: %s' % data['pools'])
 
         super(InfortrendNASDriver, self)._update_share_stats(data)
 
