@@ -280,7 +280,8 @@ class InfortrendNAS(object):
             'id': share['share_id'],
             'name': share['display_name'],
         }
-        for ip in sorted(self.channel_dict.keys()):
+        for ch in sorted(self.channel_dict.keys()):
+            ip = self.channel_dict[ch]
             if share_proto == 'nfs':
                 location.append( ip + ':%(pool_path)s/%(id)s' % location_data)
             elif share_proto == 'cifs':
