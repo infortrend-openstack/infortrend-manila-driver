@@ -363,7 +363,7 @@ class InfortrendNAS(object):
             command_line = ['share', 'status', '-f', share_path]
             nfs_status = self._execute(command_line)
             if nfs_status:
-                host_list = nfs_status['nfs_detail']['hostList']
+                host_list = nfs_status[0]['nfs_detail']['hostList']
                 for host in host_list:
                     if host['host'] != '*':
                         command_line = ['share', 'options', share_path,
