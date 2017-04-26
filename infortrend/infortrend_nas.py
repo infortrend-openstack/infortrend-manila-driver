@@ -232,7 +232,8 @@ class InfortrendNAS(object):
 
             if pool_name in self.pool_dict.keys():
                 total_space = float(pool_info['size'])
-                available_space = float(pool_info['free'])
+                pool_quota_used = self._get_pool_quota_used(pool_name)
+                available_space = total_space - pool_quota_used
 
                 total_capacity_gb = round(bi_to_gi(total_space), 2)
                 free_capacity_gb = round(bi_to_gi(available_space), 2)
@@ -252,6 +253,19 @@ class InfortrendNAS(object):
                 pools.append(pool)
 
         return pools
+
+    def _get_pool_quota_used(self, pool_name):
+        pool_quota_used = 0
+        pool_id = self.pool_dict[pool_name]['id']
+
+        command_line = ['fquota', 'status', pool_id,
+                        pool_name, '-t', 'folder']
+        quota_status = self._execute(command_line)
+
+        for share_quota in quota_status:
+            pool_quota_used += int(share_quota['quota'])
+
+        return pool_quota_used
 
     def create_share(self, share, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
