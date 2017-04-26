@@ -13,8 +13,15 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import copy
 
+import mock
 
+from manila import exception
+from manila import test
+from manila.share.drivers.infortrend import infortrend_nas
+
+class InfortrendNASTest(test.TestCase):
 
 
 
