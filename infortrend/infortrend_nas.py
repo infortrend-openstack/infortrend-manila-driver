@@ -140,7 +140,6 @@ class InfortrendNAS(object):
         content = content.strip()
         json_string = content.replace("'", "\"")
         cli_data = json_string.split("\n")[2]
-        LOG.debug(cli_data)
 
         if cli_data:
             try:
