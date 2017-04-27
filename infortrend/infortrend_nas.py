@@ -167,7 +167,7 @@ class InfortrendNAS(object):
 
     def check_for_setup_error(self):
         self._check_pools_setup()
-        self._check_channels_setup()
+        self._check_channels_status()
 
     def _ensure_service_on(self, proto, slot='A'):
         command_line = ['service', 'status', proto]
@@ -176,7 +176,7 @@ class InfortrendNAS(object):
             command_line = ['service', 'restart', proto]
             self._execute(command_line)
 
-    def _check_channels_setup(self):
+    def _check_channels_status(self):
         channel_list = list(self.channel_dict.keys())
         command_line = ['ifconfig', 'inet', 'show']
         channels_status = self._execute(command_line)
@@ -293,6 +293,7 @@ class InfortrendNAS(object):
             'id': share['share_id'],
             'name': share['display_name'],
         }
+        self._check_channels_status()
         for ch in sorted(self.channel_dict.keys()):
             ip = self.channel_dict[ch]
             if share_proto == 'nfs':
