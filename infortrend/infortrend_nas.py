@@ -537,13 +537,12 @@ class InfortrendNAS(object):
         input_location = share['export_locations'][0]['path']
         display_name = share['display_name']
 
-        ip, ift_share_name = self._parse_location(input_location, share_proto)
+        ch_ip, ift_share_name = self._parse_location(input_location, share_proto)
 
-        if ip != self.nas_ip:
-            msg = _('Export location ip: [%(ip)s] '
-                    'does not match in conf [%(nas_ip)s]') % {
-                        'ip': ip,
-                        'nas_ip': self.nas_ip}
+        if not self._check_channel_ip(ch_ip):
+            msg = _('Export location ip: [%(ch_ip)s] '
+                    'is incorrect, please use data port ip.') % {
+                        'ch_ip': ch_ip}
             LOG.error(msg)
             raise exception.InfortrendNASException(err=msg)
 
@@ -608,6 +607,14 @@ class InfortrendNAS(object):
             raise exception.InfortrendNASException(err=msg)
 
         return ip, ift_share_name
+
+    def _check_channel_ip(self, channel_ip):
+        channel_ip_exist = False
+        for ch, ip in self.channel_dict.items():
+            if ip == channel_ip:
+                channel_ip_exist = True
+                break
+        return channel_ip_exist
 
     def unmanage(self, share):
         pool_name = share_utils.extract_host(share['host'], level='pool')
