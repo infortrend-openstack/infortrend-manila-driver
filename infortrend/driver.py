@@ -13,20 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
-import six
-
 from oslo_config import cfg
 from oslo_log import log
-from oslo_utils import excutils
-from oslo_utils import importutils
 
 from manila.share.drivers.infortrend import infortrend_nas
-from manila.common import constants
 from manila import exception
-from manila.i18n import _, _LE, _LI, _LW
+from manila.i18n import _
 from manila.share import driver
-from manila import utils
 
 LOG = log.getLogger(__name__)
 
@@ -197,14 +190,12 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         return self.ift_nas.create_share(share, share_server)
 
-
     def delete_share(self, context, share, share_server=None):
         """Is called to remove share."""
 
         LOG.debug('Deleting share: [%s].' % share)
 
         return self.ift_nas.delete_share(share, share_server)
-
 
     def get_pool(self, share):
         """Return pool name where the share resides on.

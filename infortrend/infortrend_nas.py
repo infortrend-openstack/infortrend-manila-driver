@@ -13,26 +13,21 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import os
 import json
 
-from oslo_config import cfg
 from oslo_log import log
-from oslo_utils import excutils
-from oslo_utils import importutils
 from oslo_utils import units
 from oslo_concurrency import processutils
-import six
 
 from manila.common import constants
 from manila import exception
 from manila.i18n import _
-from manila.share import driver
 from manila import utils as manila_utils
 from manila.share import utils as share_utils
 
 LOG = log.getLogger(__name__)
 DEFAULT_RETRY_TIME = 5
+
 
 def retry_cli(func):
     def inner(self, *args, **kwargs):
@@ -62,6 +57,7 @@ def retry_cli(func):
                 'method': self.__class__.__name__, 'rc': rc, 'out': out})
         return rc, out
     return inner
+
 
 def bi_to_gi(bi_size):
     return bi_size / units.Gi
@@ -93,7 +89,7 @@ class InfortrendNAS(object):
         manila_utils.check_ssh_injection(commands)
         LOG.debug('Executing: %(command)s', {'command': commands})
 
-        rc, result = self._ssh_execute(commands)
+        rc, out = self._ssh_execute(commands)
 
         if rc != 0:
             msg = _('Failed to execute commands: [%(command)s].') % {
@@ -102,7 +98,7 @@ class InfortrendNAS(object):
             raise exception.InfortrendNASException(
                 err=msg, rc=rc, out=out)
 
-        return result
+        return out
 
     @retry_cli
     def _ssh_execute(self, commands):
@@ -145,7 +141,8 @@ class InfortrendNAS(object):
             try:
                 data_dict = json.loads(cli_data)
             except:
-                msg = _('Failed to parse data: %(cli_data)s to dictionary.') % {
+                msg = _('Failed to parse data: '
+                        '%(cli_data)s to dictionary.') % {
                             'content': cli_data}
                 LOG.error(msg)
                 raise exception.InfortrendNASException(err=msg)
@@ -278,7 +275,8 @@ class InfortrendNAS(object):
                         pool_name, '-c', share['share_id']]
         self._execute(command_line)
 
-        self._set_share_size(pool_id, pool_name, share['share_id'], share['size'])
+        self._set_share_size(
+            pool_id, pool_name, share['share_id'], share['size'])
         self._ensure_protocol_on(share_path, share_proto, display_name)
 
         LOG.info('Create Share [%(share_id)s] completed.', {
@@ -297,7 +295,7 @@ class InfortrendNAS(object):
         for ch in sorted(self.channel_dict.keys()):
             ip = self.channel_dict[ch]
             if share_proto == 'nfs':
-                location.append( ip + ':%(pool_path)s/%(id)s' % location_data)
+                location.append(ip + ':%(pool_path)s/%(id)s' % location_data)
             elif share_proto == 'cifs':
                 location.append('\\\\' + ip + '\\%(name)s' % location_data)
             else:
@@ -398,7 +396,6 @@ class InfortrendNAS(object):
         pool_path = self.pool_dict[pool_name]['path']
         share_path = pool_path + '/' + share['share_id']
         share_proto = share['share_proto'].lower()
-        display_name = share['display_name']
         access_type = access['access_type']
         access_level = access['access_level']
         access_to = access['access_to']
@@ -516,7 +513,6 @@ class InfortrendNAS(object):
     def ensure_share(self, share, share_server=None):
         share_proto = share['share_proto'].lower()
         pool_name = share_utils.extract_host(share['host'], level='pool')
-        pool_id = self.pool_dict[pool_name]['id']
         pool_path = self.pool_dict[pool_name]['path']
         return self._export_location(share, share_proto, pool_path)
 
@@ -538,7 +534,7 @@ class InfortrendNAS(object):
         input_location = share['export_locations'][0]['path']
         display_name = share['display_name']
 
-        ch_ip, ift_share_name = self._parse_location(input_location, share_proto)
+        ch_ip, share_name = self._parse_location(input_location, share_proto)
 
         if not self._check_channel_ip(ch_ip):
             msg = _('Export location ip: [%(ch_ip)s] '
@@ -547,28 +543,28 @@ class InfortrendNAS(object):
             LOG.error(msg)
             raise exception.InfortrendNASException(err=msg)
 
-        if not self._check_share_exist(pool_name, ift_share_name):
+        if not self._check_share_exist(pool_name, share_name):
             msg = _('Can not find Share [%(share_name)s] '
                     'in pool [%(pool_name)s].') % {
-                        'share_name': ift_share_name,
+                        'share_name': share_name,
                         'pool_name': pool_name}
             LOG.error(msg)
             raise exception.InfortrendNASException(err=msg)
 
-        share_path = pool_path + '/' + ift_share_name
+        share_path = pool_path + '/' + share_name
         self._ensure_protocol_on(share_path, share_proto, display_name)
-        share_size = self._get_share_size(pool_id, pool_name, ift_share_name)
+        share_size = self._get_share_size(pool_id, pool_name, share_name)
 
         if not share_size:
             msg = _('Share [%(share_name)s] has no size limitation, '
                     'please set it first for Openstack management.') % {
-                        'share_name': ift_share_name}
+                        'share_name': share_name}
             LOG.error(msg)
             raise exception.InfortrendNASException(err=msg)
 
         # rename share name
         command_line = ['folder', 'options', pool_id, pool_name,
-                        '-e', ift_share_name, share['share_id']]
+                        '-e', share_name, share['share_id']]
         self._execute(command_line)
 
         location = self._export_location(share, share_proto, pool_path)
@@ -576,7 +572,7 @@ class InfortrendNAS(object):
         LOG.info('Successfully Manage Infortrend Share [%(ift_name)s], '
                  'Size: [%(size)s G], Protocol: [%(share_proto)s], '
                  'Display name: [%(display_name)s].', {
-                     'ift_name': ift_share_name,
+                     'ift_name': share_name,
                      'size': share_size,
                      'share_proto': share_proto,
                      'display_name': display_name})
