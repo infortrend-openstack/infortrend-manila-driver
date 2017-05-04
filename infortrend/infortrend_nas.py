@@ -93,12 +93,12 @@ class InfortrendNAS(object):
 
         if rc != 0:
             msg = _('Failed to execute commands: [%(command)s].') % {
-                'command': commands}
+                        'command': commands}
             LOG.error(msg)
             raise exception.InfortrendNASException(
                 err=msg, rc=rc, out=out)
 
-        return out
+        return self._parser(out)
 
     @retry_cli
     def _ssh_execute(self, commands):
@@ -119,17 +119,17 @@ class InfortrendNAS(object):
             out, err = processutils.ssh_execute(
                 self.ssh, commands,
                 timeout=self.cli_timeout, check_exit_code=True)
-            rc, result = self._parser(out)
+            rc = 0
         except processutils.ProcessExecutionError as pe:
             rc = pe.exit_code
-            result = pe.stdout
-            result = result.replace('\n', '\\n')
+            out = pe.stdout
+            out = out.replace('\n', '\\n')
             LOG.error(
                 'Error on execute ssh command. '
-                'Error code: %(exit_code)d Error msg: %(result)s', {
-                    'exit_code': pe.exit_code, 'result': result})
+                'Error code: %(exit_code)d Error msg: %(out)s', {
+                    'exit_code': pe.exit_code, 'out': out})
 
-        return rc, result
+        return rc, out
 
     def _parser(self, content=None):
         content = content.replace("\r", "")
@@ -168,7 +168,7 @@ class InfortrendNAS(object):
 
     def _ensure_service_on(self, proto, slot='A'):
         command_line = ['service', 'status', proto]
-        service_status = self._execute(command_line)
+        rc, service_status = self._execute(command_line)
         if not service_status[0][slot][proto.upper()]['enabled']:
             command_line = ['service', 'restart', proto]
             self._execute(command_line)
@@ -176,7 +176,7 @@ class InfortrendNAS(object):
     def _check_channels_status(self):
         channel_list = list(self.channel_dict.keys())
         command_line = ['ifconfig', 'inet', 'show']
-        channels_status = self._execute(command_line)
+        rc, channels_status = self._execute(command_line)
         for channel in channels_status:
             if 'CH' in channel['datalink']:
                 ch = channel['datalink'].strip('CH')
@@ -196,7 +196,7 @@ class InfortrendNAS(object):
     def _check_pools_setup(self):
         pool_list = self.pool_dict.keys()
         command_line = ['folder', 'status']
-        pool_data = self._execute(command_line)
+        rc, pool_data = self._execute(command_line)
         for pool_info in pool_data:
             pool_name = self._extract_pool_name(pool_info)
             if pool_name in self.pool_dict.keys():
@@ -221,7 +221,7 @@ class InfortrendNAS(object):
     def update_pools_stats(self):
         pools = []
         command_line = ['folder', 'status']
-        pools_data = self._execute(command_line)
+        rc, pools_data = self._execute(command_line)
 
         for pool_info in pools_data:
             pool_name = self._extract_pool_name(pool_info)
@@ -256,7 +256,7 @@ class InfortrendNAS(object):
 
         command_line = ['fquota', 'status', pool_id,
                         pool_name, '-t', 'folder']
-        quota_status = self._execute(command_line)
+        rc, quota_status = self._execute(command_line)
 
         for share_quota in quota_status:
             pool_quota_used += int(share_quota['quota'])
@@ -319,7 +319,7 @@ class InfortrendNAS(object):
         share_size = None
         command_line = ['fquota', 'status', pool_id,
                         pool_name, '-t', 'folder']
-        quota_status = self._execute(command_line)
+        rc, quota_status = self._execute(command_line)
 
         for share_quota in quota_status:
             if share_quota['name'] == share_name:
@@ -347,7 +347,7 @@ class InfortrendNAS(object):
         share_exist = False
         path = self.pool_dict[pool_name]['path']
         command_line = ['pagelist', 'folder', path]
-        subfolders = self._execute(command_line)
+        rc, subfolders = self._execute(command_line)
         for subfolder in subfolders:
             if subfolder['name'] == share_name:
                 share_exist = True
@@ -373,7 +373,7 @@ class InfortrendNAS(object):
 
         if share_proto == 'nfs':
             command_line = ['share', 'status', '-f', share_path]
-            nfs_status = self._execute(command_line)
+            rc, nfs_status = self._execute(command_line)
             if nfs_status:
                 host_list = nfs_status[0]['nfs_detail']['hostList']
                 for host in host_list:
@@ -384,7 +384,7 @@ class InfortrendNAS(object):
 
         elif share_proto == 'cifs':
             command_line = ['acl', 'get', share_path]
-            cifs_status = self._execute(command_line)
+            rc, cifs_status = self._execute(command_line)
             for cifs_rule in cifs_status:
                 if cifs_rule['type'] == 'user':
                     command_line = ['acl', 'set', share_path, '-u',
@@ -443,7 +443,7 @@ class InfortrendNAS(object):
 
     def _check_proto_enabled(self, share_path, share_proto):
         command_line = ['share', 'status', '-f', share_path]
-        share_status = self._execute(command_line)
+        rc, share_status = self._execute(command_line)
         if share_status:
             check_enabled = share_status[0][share_proto]
             if check_enabled:
@@ -452,7 +452,7 @@ class InfortrendNAS(object):
 
     def _check_user_exist(self, user_name):
         command_line = ['useradmin', 'user', 'list']
-        user_list = self._execute(command_line)
+        rc, user_list = self._execute(command_line)
         for user in user_list:
             if user['Name'] == user_name:
                 return True

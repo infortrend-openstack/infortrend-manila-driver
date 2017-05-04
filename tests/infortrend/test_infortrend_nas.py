@@ -51,8 +51,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
         super(InfortrendNASDriverTestCase, self).setUp()
 
     def test_do_setup_with_service_off(self):
-        self._driver.ift_nas.processutils.ssh_execute = mock.Mock(
-            return_value=self.cli_data.get_fake_service_status_nfs())
+        self._driver.ift_nas._ssh_execute = mock.Mock(
+            return_value=(0, self.cli_data.get_fake_service_status_nfs()))
 
         self._driver.ift_nas._ensure_service_on('nfs')
         self._driver.ift_nas._execute.assert_called_once_with(
