@@ -144,8 +144,7 @@ class InfortrendNASDriver(driver.ShareDriver):
                     storage_protocol=self.PROTOCOL,
                     total_capacity_gb=0.0,
                     free_capacity_gb=0.0,
-                    reserved_percentage=self.configuration.
-                    reserved_share_percentage,
+                    reserved_percentage=0,
                     pools=self.ift_nas.update_pools_stats())
         LOG.debug('Infortrend pools status: %s' % data['pools'])
 

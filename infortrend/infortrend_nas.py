@@ -112,8 +112,8 @@ class InfortrendNAS(object):
             self.ssh = self.sshpool.create()
 
         if not self.ssh.get_transport().is_active():
-            self.ssh_pool.remove(self.ssh)
-            self.ssh = self.ssh_pool.create()
+            self.sshpool.remove(self.ssh)
+            self.ssh = self.sshpool.create()
 
         try:
             out, err = processutils.ssh_execute(
