@@ -14,9 +14,10 @@
 #    under the License.
 
 
-class InfortrendNASTestData():
+class InfortrendNASTestData(object):
 
-fake_service_status_nfs = """
+    def get_fake_service_status_nfs(self):
+        return """
 {"cliCode": [{"Return": "0x0000", "CLI": "Successful"}],
  "returnCode": [],
  "data":
@@ -31,7 +32,8 @@ fake_service_status_nfs = """
  "type": "share"}}}]}
 """.replace('\n', '')
 
-fake_fquota_status_pool_01 = """
+    def get_fake_fquota_status_pool_01(self):
+        return """
 {"cliCode": [{"Return": "0x0000", "CLI": "Successful"}],
  "returnCode": [],
  "data":
@@ -52,8 +54,8 @@ fake_fquota_status_pool_01 = """
  "quota": "53687091200"}]}
 """.replace('\n', '')
 
-
-fake_folder_status = """
+    def get_fake_folder_status(self):
+        return """
 {"cliCode": [{"Return": "0x0000", "CLI": "Successful"}],
  "returnCode": [],
  "data":
@@ -87,7 +89,8 @@ fake_folder_status = """
  "size": "107321753600"}]}
 """.replace('\n', '')
 
-fake_ifconfig_inet_one_ch = """
+    def get_fake_ifconfig_inet_one_ch(self):
+        return """
 {"cliCode": [{"Return": "0x0000", "CLI": "Successful"}],
  "returnCode": [],
  "data":
@@ -133,8 +136,8 @@ fake_ifconfig_inet_one_ch = """
  "gateway": ""}]}
 """.replace('\n', '')
 
-
-fake_ifconfig_inet_two_ch = """
+    def get_fake_ifconfig_inet_two_ch(self):
+        return """
 {"cliCode": [{"Return": "0x0000", "CLI": "Successful"}],
  "returnCode": [],
  "data":

@@ -93,7 +93,7 @@ class InfortrendNAS(object):
 
         if rc != 0:
             msg = _('Failed to execute commands: [%(command)s].') % {
-                        'command': commands}
+                'command': commands}
             LOG.error(msg)
             raise exception.InfortrendNASException(
                 err=msg, rc=rc, out=out)

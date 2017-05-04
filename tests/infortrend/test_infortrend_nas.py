@@ -15,10 +15,12 @@
 
 import copy
 import mock
+import ddt
 
 from oslo_config import cfg
 from manila import exception
 from manila import test
+from manila import context
 from manila.share import configuration
 from manila.share.drivers.infortrend import driver
 from manila.share.drivers.infortrend import infortrend_nas
@@ -33,7 +35,6 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def __init__(self, *args, **kwargs):
         super(InfortrendNASDriverTestCase, self).__init__(*args, **kwargs)
         self._ctxt = context.get_admin_context()
-        self.fake_conf = test_config
         self.cli_data = test_infortrend_data.InfortrendNASTestData()
 
     def setUp(self):
@@ -50,8 +51,9 @@ class InfortrendNASDriverTestCase(test.TestCase):
         super(InfortrendNASDriverTestCase, self).setUp()
 
     def test_do_setup_with_service_off(self):
+        self._driver.ift_nas.processutils.ssh_execute = mock.Mock(
+            return_value=self.cli_data.get_fake_service_status_nfs())
+
         self._driver.ift_nas._ensure_service_on('nfs')
-        self._driver.ift_nas._execute = mock.Mock(
-            return_value=self.cli_data.fake_service_status_nfs)
         self._driver.ift_nas._execute.assert_called_once_with(
             'service', 'restart', 'nfs')
