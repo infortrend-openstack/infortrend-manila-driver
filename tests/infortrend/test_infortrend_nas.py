@@ -48,12 +48,62 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self.fake_conf = configuration.Configuration(None)
         self._driver = driver.InfortrendNASDriver(
             configuration=self.fake_conf)
+        self._iftnas = self._driver.ift_nas
         super(InfortrendNASDriverTestCase, self).setUp()
 
-    def test_do_setup_with_service_off(self):
-        self._driver.ift_nas._ssh_execute = mock.Mock(
-            return_value=(0, self.cli_data.get_fake_service_status_nfs()))
+    def test_parser_with_service_status(self):
+        expect_service_status = [{
+            'A': {
+                'NFS': {
+                    'displayName': 'NFS',
+                    'state_time': '2017-05-04 14:19:53',
+                    'enabled': True,
+                    'cpu_rate': '0.0',
+                    'mem_rate': '0.0',
+                    'state': 'exited',
+                    'type': 'share',
+                }
+            }
+        }]
+        rc, service_status = self._iftnas._parser(
+            self.cli_data.fake_service_status)
 
-        self._driver.ift_nas._ensure_service_on('nfs')
-        self._driver.ift_nas._execute.assert_called_once_with(
-            'service', 'restart', 'nfs')
+        self.assertEqual(0, rc)
+        self.assertEqual(expect_service_status, service_status)
+
+    def test_parser_with_folder_status(self):
+        expect_folder_status = [
+            {'utility': '1.00',
+             'used': '33886208',
+             'subshare': True,
+             'share': False,
+             'worm': '',
+             'free': '321931374592',
+             'fsType': 'xfs',
+             'owner': 'A',
+             'readOnly': False,
+             'modifyTime': '2017-04-27 16:16',
+             'directory': '/LV-1/share-pool-01',
+             'volumeId': '6541BAFB2E6C57B6',
+             'mounted': True,
+             'size': '321965260800'},
+            {'utility': '1.00',
+             'used': '33779712',
+             'subshare': False,
+             'share': False,
+             'worm': '',
+             'free': '107287973888',
+             'fsType': 'xfs',
+             'owner': 'A',
+             'readOnly': False,
+             'modifyTime': '2017-04-27 15:45',
+             'directory': '/LV-1/share-pool-02',
+             'volumeId': '147A8FB67DA39914',
+             'mounted': True,
+             'size': '107321753600'}]
+
+        rc, folder_status = self._iftnas._parser(
+            self.cli_data.fake_folder_status)
+
+        self.assertEqual(0, rc)
+        self.assertEqual(expect_folder_status, folder_status)

@@ -143,7 +143,7 @@ class InfortrendNAS(object):
             except:
                 msg = _('Failed to parse data: '
                         '%(cli_data)s to dictionary.') % {
-                            'content': cli_data}
+                            'cli_data': cli_data}
                 LOG.error(msg)
                 raise exception.InfortrendNASException(err=msg)
 
