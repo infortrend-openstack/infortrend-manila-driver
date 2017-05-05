@@ -72,38 +72,83 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self.assertEqual(expect_service_status, service_status)
 
     def test_parser_with_folder_status(self):
-        expect_folder_status = [
-            {'utility': '1.00',
-             'used': '33886208',
-             'subshare': True,
-             'share': False,
-             'worm': '',
-             'free': '321931374592',
-             'fsType': 'xfs',
-             'owner': 'A',
-             'readOnly': False,
-             'modifyTime': '2017-04-27 16:16',
-             'directory': '/LV-1/share-pool-01',
-             'volumeId': '6541BAFB2E6C57B6',
-             'mounted': True,
-             'size': '321965260800'},
-            {'utility': '1.00',
-             'used': '33779712',
-             'subshare': False,
-             'share': False,
-             'worm': '',
-             'free': '107287973888',
-             'fsType': 'xfs',
-             'owner': 'A',
-             'readOnly': False,
-             'modifyTime': '2017-04-27 15:45',
-             'directory': '/LV-1/share-pool-02',
-             'volumeId': '147A8FB67DA39914',
-             'mounted': True,
-             'size': '107321753600'}]
+        expect_folder_status = [{
+            'utility': '1.00',
+            'used': '33886208',
+            'subshare': True,
+            'share': False,
+            'worm': '',
+            'free': '321931374592',
+            'fsType': 'xfs',
+            'owner': 'A',
+            'readOnly': False,
+            'modifyTime': '2017-04-27 16:16',
+            'directory': '/LV-1/share-pool-01',
+            'volumeId': '6541BAFB2E6C57B6',
+            'mounted': True,
+            'size': '321965260800'}, {
+            'utility': '1.00',
+            'used': '33779712',
+            'subshare': False,
+            'share': False,
+            'worm': '',
+            'free': '107287973888',
+            'fsType': 'xfs',
+            'owner': 'A',
+            'readOnly': False,
+            'modifyTime': '2017-04-27 15:45',
+            'directory': '/LV-1/share-pool-02',
+            'volumeId': '147A8FB67DA39914',
+            'mounted': True,
+            'size': '107321753600'}]
 
         rc, folder_status = self._iftnas._parser(
             self.cli_data.fake_folder_status)
 
         self.assertEqual(0, rc)
         self.assertEqual(expect_folder_status, folder_status)
+
+    def test_ensure_service_on(self):
+        mock_execute = mock.Mock(
+            side_effect=[(0, self.cli_data.fake_nfs_status_off), []])
+        self._iftnas._execute = mock_execute
+
+        self._iftnas._ensure_service_on('nfs')
+        mock_execute.assert_called_with(['service', 'restart', 'nfs'])
+
+    def test_check_channels_status(self):
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.cli_data.fake_channel_status))
+
+        expect_channel_dict = {
+            '0': '172.27.112.223',
+            '1': '172.27.113.209',
+        }
+
+        self._iftnas._check_channels_status()
+        self.assertEqual(expect_channel_dict, self._iftnas.channel_dict)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

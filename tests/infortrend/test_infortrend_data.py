@@ -64,3 +64,68 @@ class InfortrendNASTestData(object):
                           '"volumeId": "147A8FB67DA39914", '
                           '"mounted": true, '
                           '"size": "107321753600"}]}\n\n')
+
+    fake_nfs_status_off = [{
+        'A': {
+            'NFS': {
+                'displayName': 'NFS',
+                'state_time': '2017-05-04 14:19:53',
+                'enabled': False,
+                'cpu_rate': '0.0',
+                'mem_rate': '0.0',
+                'state': 'exited',
+                'type': 'share',
+            }
+        }
+    }]
+
+    fake_channel_status = [{
+        'datalink': 'mgmt0',
+        'status': 'UP',
+        'typeConfig': 'DHCP',
+        'IP': '172.27.112.125',
+        'MAC': '00:d0:23:00:15:a6',
+        'netmask': '255.255.240.0',
+        'type': 'dhcp',
+        'gateway': '172.27.127.254'}, {
+        'datalink': 'CH0',
+        'status': 'UP',
+        'typeConfig': 'DHCP',
+        'IP': '172.27.112.223',
+        'MAC': '00:d0:23:80:15:a6',
+        'netmask': '255.255.240.0',
+        'type': 'dhcp',
+        'gateway': '172.27.127.254'}, {
+        'datalink': 'CH1',
+        'status': 'UP',
+        'typeConfig': 'DHCP',
+        'IP': '172.27.113.209',
+        'MAC': '00:d0:23:40:15:a6',
+        'netmask': '255.255.240.0',
+        'type': 'dhcp',
+        'gateway': '172.27.127.254'}, {
+        'datalink': 'CH2',
+        'status': 'DOWN',
+        'typeConfig': 'DHCP',
+        'IP': '',
+        'MAC': '00:d0:23:c0:15:a6',
+        'netmask': '',
+        'type': '',
+        'gateway': ''}, {
+        'datalink': 'CH3',
+        'status': 'DOWN',
+        'typeConfig': 'DHCP',
+        'IP': '',
+        'MAC': '00:d0:23:20:15:a6',
+        'netmask': '',
+        'type': '',
+        'gateway': ''}]
+
+
+
+
+
+
+
+
+
