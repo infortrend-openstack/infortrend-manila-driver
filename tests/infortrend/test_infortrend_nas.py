@@ -48,10 +48,22 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self.fake_conf = configuration.Configuration(None)
         super(InfortrendNASDriverTestCase, self).setUp()
 
-    def _get_driver(self, fake_conf):
+    def _get_driver(self, fake_conf, init_dict=False):
         self._driver = driver.InfortrendNASDriver(
             configuration=fake_conf)
         self._iftnas = self._driver.ift_nas
+
+        if init_dict:
+            self._iftnas.pool_dict = {
+                'share-pool-01': {
+                    'id': '6541BAFB2E6C57B6',
+                    'path': '/LV-1/share-pool-01',
+                }
+            }
+            self._iftnas.channel_dict = {
+                '0': '172.27.112.223',
+                '1': '172.27.113.209',
+            }
 
     def test_parser_with_service_status(self):
         expect_service_status = [{
@@ -72,7 +84,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             self.cli_data.fake_service_status_data)
 
         self.assertEqual(0, rc)
-        self.assertEqual(expect_service_status, service_status)
+        self.assertDictListMatch(expect_service_status, service_status)
 
     def test_parser_with_folder_status(self):
         expect_folder_status = [{
@@ -110,7 +122,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             self.cli_data.fake_folder_status_data)
 
         self.assertEqual(0, rc)
-        self.assertEqual(expect_folder_status, folder_status)
+        self.assertDictListMatch(expect_folder_status, folder_status)
 
     def test_ensure_service_on(self):
         self._get_driver(self.fake_conf)
@@ -131,7 +143,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             return_value=(0, self.cli_data.fake_get_channel_status()))
 
         self._iftnas._check_channels_status()
-        self.assertEqual(expect_channel_dict, self._iftnas.channel_dict)
+        self.assertDictMatch(expect_channel_dict, self._iftnas.channel_dict)
 
     @mock.patch.object(infortrend_nas.LOG, 'warning')
     def test_channel_status_down(self, log_warning):
@@ -166,7 +178,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         self._iftnas._check_pools_setup()
 
-        self.assertEqual(expect_pool_dict, self._iftnas.pool_dict)
+        self.assertDictMatch(expect_pool_dict, self._iftnas.pool_dict)
 
     def test_unknow_pools_setup(self):
         self.fake_conf.set_default('infortrend_share_pools', 'chengwei')
@@ -180,14 +192,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_get_pool_quota_used(self, mock_execute):
-        self._get_driver(self.fake_conf)
+        self._get_driver(self.fake_conf, True)
         mock_execute.return_value = (0, self.cli_data.fake_fquota_status)
-        self._iftnas.pool_dict = {
-            'share-pool-01': {
-                'id': '6541BAFB2E6C57B6',
-                'path': '/LV-1/share-pool-01',
-            }
-        }
 
         pool_quota = self._iftnas._get_pool_quota_used('share-pool-01')
 
@@ -195,8 +201,6 @@ class InfortrendNASDriverTestCase(test.TestCase):
             ['fquota', 'status', '6541BAFB2E6C57B6',
              'share-pool-01', '-t', 'folder'])
         self.assertEqual(96636764160, pool_quota)
-
-
 
 
 
