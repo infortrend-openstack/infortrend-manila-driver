@@ -16,54 +16,54 @@
 
 class InfortrendNASTestData(object):
 
-    fake_service_status = ('(64175, 1234, 272, 0)\n\n'
-                           '{"cliCode": '
-                           '[{"Return": "0x0000", "CLI": "Successful"}], '
-                           '"returnCode": [], '
-                           '"data": '
-                           '[{"A": '
-                           '{"NFS": '
-                           '{"displayName": "NFS", '
-                           '"state_time": "2017-05-04 14:19:53", '
-                           '"enabled": true, '
-                           '"cpu_rate": "0.0", '
-                           '"mem_rate": "0.0", '
-                           '"state": "exited", '
-                           '"type": "share"}}}]}\n\n')
+    fake_service_status_data = ('(64175, 1234, 272, 0)\n\n'
+                                '{"cliCode": '
+                                '[{"Return": "0x0000", "CLI": "Successful"}], '
+                                '"returnCode": [], '
+                                '"data": '
+                                '[{"A": '
+                                '{"NFS": '
+                                '{"displayName": "NFS", '
+                                '"state_time": "2017-05-04 14:19:53", '
+                                '"enabled": true, '
+                                '"cpu_rate": "0.0", '
+                                '"mem_rate": "0.0", '
+                                '"state": "exited", '
+                                '"type": "share"}}}]}\n\n')
 
-    fake_folder_status = ('(64175, 1234, 1017, 0)\n\n'
-                          '{"cliCode": '
-                          '[{"Return": "0x0000", "CLI": "Successful"}], '
-                          '"returnCode": [], '
-                          '"data": '
-                          '[{"utility": "1.00", '
-                          '"used": "33886208", '
-                          '"subshare": true, '
-                          '"share": false, '
-                          '"worm": "", '
-                          '"free": "321931374592", '
-                          '"fsType": "xfs", '
-                          '"owner": "A", '
-                          '"readOnly": false, '
-                          '"modifyTime": "2017-04-27 16:16", '
-                          '"directory": "/LV-1/share-pool-01", '
-                          '"volumeId": "6541BAFB2E6C57B6", '
-                          '"mounted": true, '
-                          '"size": "321965260800"}, '
-                          '{"utility": "1.00", '
-                          '"used": "33779712", '
-                          '"subshare": false, '
-                          '"share": false, '
-                          '"worm": "", '
-                          '"free": "107287973888", '
-                          '"fsType": "xfs", '
-                          '"owner": "A", '
-                          '"readOnly": false, '
-                          '"modifyTime": "2017-04-27 15:45", '
-                          '"directory": "/LV-1/share-pool-02", '
-                          '"volumeId": "147A8FB67DA39914", '
-                          '"mounted": true, '
-                          '"size": "107321753600"}]}\n\n')
+    fake_folder_status_data = ('(64175, 1234, 1017, 0)\n\n'
+                               '{"cliCode": '
+                               '[{"Return": "0x0000", "CLI": "Successful"}], '
+                               '"returnCode": [], '
+                               '"data": '
+                               '[{"utility": "1.00", '
+                               '"used": "33886208", '
+                               '"subshare": true, '
+                               '"share": false, '
+                               '"worm": "", '
+                               '"free": "321931374592", '
+                               '"fsType": "xfs", '
+                               '"owner": "A", '
+                               '"readOnly": false, '
+                               '"modifyTime": "2017-04-27 16:16", '
+                               '"directory": "/LV-1/share-pool-01", '
+                               '"volumeId": "6541BAFB2E6C57B6", '
+                               '"mounted": true, '
+                               '"size": "321965260800"}, '
+                               '{"utility": "1.00", '
+                               '"used": "33779712", '
+                               '"subshare": false, '
+                               '"share": false, '
+                               '"worm": "", '
+                               '"free": "107287973888", '
+                               '"fsType": "xfs", '
+                               '"owner": "A", '
+                               '"readOnly": false, '
+                               '"modifyTime": "2017-04-27 15:45", '
+                               '"directory": "/LV-1/share-pool-02", '
+                               '"volumeId": "147A8FB67DA39914", '
+                               '"mounted": true, '
+                               '"size": "107321753600"}]}\n\n')
 
     fake_nfs_status_off = [{
         'A': {
@@ -78,6 +78,36 @@ class InfortrendNASTestData(object):
             }
         }
     }]
+
+    fake_folder_status = [{
+        'utility': '1.00',
+        'used': '33886208',
+        'subshare': True,
+        'share': False,
+        'worm': '',
+        'free': '321931374592',
+        'fsType': 'xfs',
+        'owner': 'A',
+        'readOnly': False,
+        'modifyTime': '2017-04-27 16:16',
+        'directory': '/LV-1/share-pool-01',
+        'volumeId': '6541BAFB2E6C57B6',
+        'mounted': True,
+        'size': '321965260800'}, {
+        'utility': '1.00',
+        'used': '33779712',
+        'subshare': False,
+        'share': False,
+        'worm': '',
+        'free': '107287973888',
+        'fsType': 'xfs',
+        'owner': 'A',
+        'readOnly': False,
+        'modifyTime': '2017-04-27 15:45',
+        'directory': '/LV-1/share-pool-02',
+        'volumeId': '147A8FB67DA39914',
+        'mounted': True,
+        'size': '107321753600'}]
 
     def fake_get_channel_status(self, status='UP'):
         return [{

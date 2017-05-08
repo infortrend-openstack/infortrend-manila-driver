@@ -69,7 +69,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         }]
         self._get_driver(self.fake_conf)
         rc, service_status = self._iftnas._parser(
-            self.cli_data.fake_service_status)
+            self.cli_data.fake_service_status_data)
 
         self.assertEqual(0, rc)
         self.assertEqual(expect_service_status, service_status)
@@ -107,7 +107,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         self._get_driver(self.fake_conf)
         rc, folder_status = self._iftnas._parser(
-            self.cli_data.fake_folder_status)
+            self.cli_data.fake_folder_status_data)
 
         self.assertEqual(0, rc)
         self.assertEqual(expect_folder_status, folder_status)
@@ -122,13 +122,13 @@ class InfortrendNASDriverTestCase(test.TestCase):
         mock_execute.assert_called_with(['service', 'restart', 'nfs'])
 
     def test_check_channels_status(self):
-        self._get_driver(self.fake_conf)
-        self._iftnas._execute = mock.Mock(
-            return_value=(0, self.cli_data.fake_get_channel_status()))
         expect_channel_dict = {
             '0': '172.27.112.223',
             '1': '172.27.113.209',
         }
+        self._get_driver(self.fake_conf)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.cli_data.fake_get_channel_status()))
 
         self._iftnas._check_channels_status()
         self.assertEqual(expect_channel_dict, self._iftnas.channel_dict)
@@ -152,13 +152,30 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self.assertRaises(
             exception.InfortrendNASException,
             self._iftnas._check_channels_status)
-        self.assertEqual(1, log_error.call_count)
 
+    def test_check_pools_setup(self):
+        expect_pool_dict = {
+            'share-pool-01': {
+                'id': '6541BAFB2E6C57B6',
+                'path': '/LV-1/share-pool-01',
+            }
+        }
+        self._get_driver(self.fake_conf)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.cli_data.fake_folder_status))
 
+        self._iftnas._check_pools_setup()
 
+        self.assertEqual(expect_pool_dict, self._iftnas.pool_dict)
 
+    def test_unknow_pools_setup(self):
+        self.fake_conf.set_default('infortrend_share_pools', 'chengwei')
+        self._get_driver(self.fake_conf)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.cli_data.fake_folder_status))
 
-
-
+        self.assertRaises(
+            exception.InfortrendNASException,
+            self._iftnas._check_pools_setup)
 
 
