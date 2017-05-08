@@ -45,16 +45,16 @@ def retry_cli(func):
                 break
 
             LOG.error(
-                'Retry %(retry)s times: %(method)s Failed '
+                'Retry %(retry)s times: %(command)s Failed '
                 '%(rc)s: %(reason)s', {
                     'retry': retry_time,
-                    'method': self.__class__.__name__,
+                    'command': args,
                     'rc': rc,
                     'reason': out})
         LOG.debug(
-            'Method: %(method)s Return Code: %(rc)s '
+            'Command: %(command)s Return Code: %(rc)s '
             'Output: %(out)s', {
-                'method': self.__class__.__name__, 'rc': rc, 'out': out})
+                'command': args, 'rc': rc, 'out': out})
         return rc, out
     return inner
 
@@ -92,11 +92,7 @@ class InfortrendNAS(object):
         rc, out = self._ssh_execute(commands)
 
         if rc != 0:
-            msg = _('Failed to execute commands: [%(command)s].') % {
-                        'command': commands}
-            LOG.error(msg)
-            raise exception.InfortrendCLIException(
-                err=msg, rc=rc, out=out)
+            raise exception.InfortrendNASException(err=out)
 
         return self._parser(out)
 
@@ -124,10 +120,9 @@ class InfortrendNAS(object):
             rc = pe.exit_code
             out = pe.stdout
             out = out.replace('\n', '\\n')
-            LOG.error(
-                'Error on execute ssh command. '
-                'Error code: %(exit_code)d Error msg: %(out)s', {
-                    'exit_code': pe.exit_code, 'out': out})
+            LOG.error(_('Error on execute ssh command. '
+                        'Error code: %(exit_code)d Error msg: %(out)s') % {
+                            'exit_code': rc, 'out': out})
 
         return rc, out
 
@@ -153,8 +148,16 @@ class InfortrendNAS(object):
             else:
                 result = data_dict['cliCode'][0]['CLI']
         else:
-            rc = -1
-            result = None
+            msg = _('No data is returned from NAS.')
+            LOG.error(msg)
+            raise exception.InfortrendNASException(err=msg)
+
+        if rc != 0:
+            msg = _('NASCLI error, returned: %(result)s.') % {
+                        'result': result}
+            LOG.error(msg)
+            raise exception.InfortrendCLIException(
+                err=msg, rc=rc, out=result)
 
         return rc, result
 
