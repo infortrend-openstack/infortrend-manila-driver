@@ -79,47 +79,48 @@ class InfortrendNASTestData(object):
         }
     }]
 
-    fake_channel_status = [{
-        'datalink': 'mgmt0',
-        'status': 'UP',
-        'typeConfig': 'DHCP',
-        'IP': '172.27.112.125',
-        'MAC': '00:d0:23:00:15:a6',
-        'netmask': '255.255.240.0',
-        'type': 'dhcp',
-        'gateway': '172.27.127.254'}, {
-        'datalink': 'CH0',
-        'status': 'UP',
-        'typeConfig': 'DHCP',
-        'IP': '172.27.112.223',
-        'MAC': '00:d0:23:80:15:a6',
-        'netmask': '255.255.240.0',
-        'type': 'dhcp',
-        'gateway': '172.27.127.254'}, {
-        'datalink': 'CH1',
-        'status': 'UP',
-        'typeConfig': 'DHCP',
-        'IP': '172.27.113.209',
-        'MAC': '00:d0:23:40:15:a6',
-        'netmask': '255.255.240.0',
-        'type': 'dhcp',
-        'gateway': '172.27.127.254'}, {
-        'datalink': 'CH2',
-        'status': 'DOWN',
-        'typeConfig': 'DHCP',
-        'IP': '',
-        'MAC': '00:d0:23:c0:15:a6',
-        'netmask': '',
-        'type': '',
-        'gateway': ''}, {
-        'datalink': 'CH3',
-        'status': 'DOWN',
-        'typeConfig': 'DHCP',
-        'IP': '',
-        'MAC': '00:d0:23:20:15:a6',
-        'netmask': '',
-        'type': '',
-        'gateway': ''}]
+    def fake_get_channel_status(self, status='UP'):
+        return [{
+            'datalink': 'mgmt0',
+            'status': 'UP',
+            'typeConfig': 'DHCP',
+            'IP': '172.27.112.125',
+            'MAC': '00:d0:23:00:15:a6',
+            'netmask': '255.255.240.0',
+            'type': 'dhcp',
+            'gateway': '172.27.127.254'}, {
+            'datalink': 'CH0',
+            'status': 'UP',
+            'typeConfig': 'DHCP',
+            'IP': '172.27.112.223',
+            'MAC': '00:d0:23:80:15:a6',
+            'netmask': '255.255.240.0',
+            'type': 'dhcp',
+            'gateway': '172.27.127.254'}, {
+            'datalink': 'CH1',
+            'status': status,
+            'typeConfig': 'DHCP',
+            'IP': '172.27.113.209',
+            'MAC': '00:d0:23:40:15:a6',
+            'netmask': '255.255.240.0',
+            'type': 'dhcp',
+            'gateway': '172.27.127.254'}, {
+            'datalink': 'CH2',
+            'status': 'DOWN',
+            'typeConfig': 'DHCP',
+            'IP': '',
+            'MAC': '00:d0:23:c0:15:a6',
+            'netmask': '',
+            'type': '',
+            'gateway': ''}, {
+            'datalink': 'CH3',
+            'status': 'DOWN',
+            'typeConfig': 'DHCP',
+            'IP': '',
+            'MAC': '00:d0:23:20:15:a6',
+            'netmask': '',
+            'type': '',
+            'gateway': ''}]
 
 
 

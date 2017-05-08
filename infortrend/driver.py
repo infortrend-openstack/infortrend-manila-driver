@@ -119,7 +119,7 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         tmp_ch_list = channels.split(',')
         for channel in tmp_ch_list:
-            temp_ch_dict[channel.strip()] = {}
+            temp_ch_dict[channel.strip()] = ''
 
         return temp_ch_dict
 

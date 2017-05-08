@@ -46,10 +46,12 @@ class InfortrendNASDriverTestCase(test.TestCase):
         CONF.set_default('infortrend_share_pools', 'share-pool-01')
         CONF.set_default('infortrend_share_channels', '0, 1')
         self.fake_conf = configuration.Configuration(None)
-        self._driver = driver.InfortrendNASDriver(
-            configuration=self.fake_conf)
-        self._iftnas = self._driver.ift_nas
         super(InfortrendNASDriverTestCase, self).setUp()
+
+    def _get_driver(self, fake_conf):
+        self._driver = driver.InfortrendNASDriver(
+            configuration=fake_conf)
+        self._iftnas = self._driver.ift_nas
 
     def test_parser_with_service_status(self):
         expect_service_status = [{
@@ -65,6 +67,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
                 }
             }
         }]
+        self._get_driver(self.fake_conf)
         rc, service_status = self._iftnas._parser(
             self.cli_data.fake_service_status)
 
@@ -102,6 +105,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             'mounted': True,
             'size': '107321753600'}]
 
+        self._get_driver(self.fake_conf)
         rc, folder_status = self._iftnas._parser(
             self.cli_data.fake_folder_status)
 
@@ -109,6 +113,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self.assertEqual(expect_folder_status, folder_status)
 
     def test_ensure_service_on(self):
+        self._get_driver(self.fake_conf)
         mock_execute = mock.Mock(
             side_effect=[(0, self.cli_data.fake_nfs_status_off), []])
         self._iftnas._execute = mock_execute
@@ -117,9 +122,9 @@ class InfortrendNASDriverTestCase(test.TestCase):
         mock_execute.assert_called_with(['service', 'restart', 'nfs'])
 
     def test_check_channels_status(self):
+        self._get_driver(self.fake_conf)
         self._iftnas._execute = mock.Mock(
-            return_value=(0, self.cli_data.fake_channel_status))
-
+            return_value=(0, self.cli_data.fake_get_channel_status()))
         expect_channel_dict = {
             '0': '172.27.112.223',
             '1': '172.27.113.209',
@@ -128,21 +133,26 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self._iftnas._check_channels_status()
         self.assertEqual(expect_channel_dict, self._iftnas.channel_dict)
 
+    @mock.patch.object(infortrend_nas.LOG, 'warning')
+    def test_channel_status_down(self, log_warning):
+        self._get_driver(self.fake_conf)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.cli_data.fake_get_channel_status('DOWN')))
 
+        self._iftnas._check_channels_status()
+        self.assertEqual(1, log_warning.call_count)
 
+    @mock.patch.object(infortrend_nas.LOG, 'error')
+    def test_invalid_channel(self, log_error):
+        self.fake_conf.set_default('infortrend_share_channels', '0, 6')
+        self._get_driver(self.fake_conf)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.cli_data.fake_get_channel_status()))
 
-
-
-
-
-
-
-
-
-
-
-
-
+        self.assertRaises(
+            exception.InfortrendNASException,
+            self._iftnas._check_channels_status)
+        self.assertEqual(1, log_error.call_count)
 
 
 
