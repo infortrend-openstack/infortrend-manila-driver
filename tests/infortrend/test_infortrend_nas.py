@@ -178,4 +178,29 @@ class InfortrendNASDriverTestCase(test.TestCase):
             exception.InfortrendNASException,
             self._iftnas._check_pools_setup)
 
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_get_pool_quota_used(self, mock_execute):
+        self._get_driver(self.fake_conf)
+        mock_execute.return_value = (0, self.cli_data.fake_fquota_status)
+        self._iftnas.pool_dict = {
+            'share-pool-01': {
+                'id': '6541BAFB2E6C57B6',
+                'path': '/LV-1/share-pool-01',
+            }
+        }
+
+        pool_quota = self._iftnas._get_pool_quota_used('share-pool-01')
+
+        mock_execute.assert_called_with(
+            ['fquota', 'status', '6541BAFB2E6C57B6',
+             'share-pool-01', '-t', 'folder'])
+        self.assertEqual(96636764160, pool_quota)
+
+
+
+
+
+
+
+
 

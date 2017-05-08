@@ -152,7 +152,22 @@ class InfortrendNASTestData(object):
             'type': '',
             'gateway': ''}]
 
-
+    fake_fquota_status = [{
+        'quota': '10737418240',
+        'used': '0',
+        'name': 'manila-unmanage-test-manage',
+        'type': 'subfolder',
+        'id': '537178178'}, {
+        'quota': '32212254720',
+        'used': '0',
+        'name': '4d6984fd-8572-4467-964f-24936a8c4ea2',
+        'type': 'subfolder',
+        'id': '805306752'}, {
+        'quota': '53687091200',
+        'used': '0',
+        'name': 'a7b933e6-bb77-4823-a86f-f2c3ab41a8a5',
+        'type': 'subfolder',
+        'id': '69'}]
 
 
 
