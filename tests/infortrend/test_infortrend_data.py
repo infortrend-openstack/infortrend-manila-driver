@@ -169,6 +169,75 @@ class InfortrendNASTestData(object):
         'type': 'subfolder',
         'id': '69'}]
 
+    fake_share_nfs = {
+        'share_id': 'f54a7219-0a2b-4d70-8e2e-b63ba65701fd',
+        'availability_zone': 'nova',
+        'terminated_at': 'datetime.datetime(2017, 5, 8, 8, 27, 25)',
+        'availability_zone_id': 'fd32d76d-b5a8-4c5c-93d7-8f09fc2a8ad3',
+        'updated_at': 'datetime.datetime(2017, 5, 8, 8, 27, 25)',
+        'share_network_id': None,
+        'export_locations': [],
+        'share_server_id': None,
+        'snapshot_id': None,
+        'deleted_at': None,
+        'id': '5a0aa06e-1c57-4996-be46-b81e360e8866',
+        'size': 10,
+        'replica_state': None,
+        'user_id': '4944594433f0405588928a4212964658',
+        'export_location': '172.27.112.223:/LV-1/share-pool-01/'
+                           'f54a7219-0a2b-4d70-8e2e-b63ba65701fd',
+        'display_description': None,
+        'consistency_group_id': None,
+        'project_id': '0e63326c50a246ac81fa1a0c8e003d5b',
+        'launched_at': 'datetime.datetime(2017, 5, 8, 8, 23, 33)',
+        'scheduled_at': 'datetime.datetime(2017, 5, 8, 8, 23, 29)',
+        'status': 'deleting',
+        'share_type_id': '23d8c637-0192-47fa-b921-958f22ed772f',
+        'deleted': 'False',
+        'host': 'compute@ift-manila#share-pool-01',
+        'access_rules_status': 'active',
+        'display_name': 'test_share',
+        'name': 'share-5a0aa06e-1c57-4996-be46-b81e360e8866',
+        'created_at': 'datetime.datetime(2017, 5, 8, 8, 23, 29)',
+        'share_proto': 'NFS',
+        'is_public': False,
+        'source_cgsnapshot_member_id': None
+    }
+
+    def fake_get_share_status_nfs(self, status=False):
+        fake_share_status_nfs = [{
+            'ftp': False,
+            'cifs': False,
+            'oss': False,
+            'sftp': False,
+            'nfs': status,
+            'directory': '/LV-1/share-pool-01/'
+                         '1699fbd9-cc92-42f5-9b82-1f9c0e8f7dde',
+            'exist': True,
+            'afp': False,
+            'webdav': False}]
+        if status:
+            fake_share_status_nfs[0]['nfs_detail'] = {
+                'hostList': [{
+                    'uid': '65534',
+                    'insecure': 'insecure',
+                    'squash': 'all',
+                    'access': 'ro',
+                    'host': '*',
+                    'gid': '65534',
+                    'mode': 'async',
+                    'no_subtree_check': 'no_subtree_check'}]
+            }
+        return fake_share_status_nfs
+
+
+
+
+
+
+
+
+
 
 
 

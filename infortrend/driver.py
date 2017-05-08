@@ -177,7 +177,7 @@ class InfortrendNASDriver(driver.ShareDriver):
             'access_rules: %(access_rules)s, '
             'add_rules: %(add_rules)s, '
             'delete_rules: %(delete_rules)s,', {
-                'share': share, 'access_rules': access_rules,
+                'share': dict(share), 'access_rules': access_rules,
                 'add_rules': add_rules, 'delete_rules': delete_rules})
         return self.ift_nas.update_access(share, access_rules, add_rules,
                                           delete_rules, share_server)
@@ -185,14 +185,14 @@ class InfortrendNASDriver(driver.ShareDriver):
     def create_share(self, context, share, share_server=None):
         """Is called to create share."""
 
-        LOG.debug('Creating share: [%s].' % share)
+        LOG.debug('Creating share: %s.' % dict(share))
 
         return self.ift_nas.create_share(share, share_server)
 
     def delete_share(self, context, share, share_server=None):
         """Is called to remove share."""
 
-        LOG.debug('Deleting share: [%s].' % share)
+        LOG.debug('Deleting share: %s.' % dict(share))
 
         return self.ift_nas.delete_share(share, share_server)
 

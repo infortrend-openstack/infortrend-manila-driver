@@ -29,6 +29,9 @@ from manila.tests import fake_share
 
 CONF = cfg.CONF
 
+SUCCEED = (0, [])
+FAILED = (-1, None)
+
 
 @ddt.ddt
 class InfortrendNASDriverTestCase(test.TestCase):
@@ -127,7 +130,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_ensure_service_on(self):
         self._get_driver(self.fake_conf)
         mock_execute = mock.Mock(
-            side_effect=[(0, self.cli_data.fake_nfs_status_off), []])
+            side_effect=[(0, self.cli_data.fake_nfs_status_off), SUCCEED])
         self._iftnas._execute = mock_execute
 
         self._iftnas._ensure_service_on('nfs')
@@ -202,9 +205,24 @@ class InfortrendNASDriverTestCase(test.TestCase):
              'share-pool-01', '-t', 'folder'])
         self.assertEqual(96636764160, pool_quota)
 
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_create_share(self, mock_execute):
+        fake_share_id = self.cli_data.fake_share_nfs['share_id']
+        expect_locations = [
+            '172.27.112.223:/LV-1/share-pool-01/' + fake_share_id,
+            '172.27.113.209:/LV-1/share-pool-01/' + fake_share_id]
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            SUCCEED,  # create folder
+            SUCCEED,  # set size
+            (0, self.cli_data.fake_get_share_status_nfs()),  # check proto
+            SUCCEED,  # enable proto
+            (0, self.cli_data.fake_get_channel_status())]  # update channel
 
+        locations = self._iftnas.create_share(self.cli_data.fake_share_nfs)
 
-
-
+        self.assertEqual(expect_locations, locations)
+        mock_execute.assert_any_call(
+            ['share', '/LV-1/share-pool-01/' + fake_share_id, 'nfs', 'on'])
 
 
