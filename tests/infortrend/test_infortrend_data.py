@@ -16,6 +16,11 @@
 
 class InfortrendNASTestData(object):
 
+    fake_share_id = ['4d6984fd-8572-4467-964f-24936a8c4ea2',
+                     'a7b933e6-bb77-4823-a86f-f2c3ab41a8a5']
+
+    fake_channel_ip = ['172.27.112.223', '172.27.113.209']
+
     fake_service_status_data = ('(64175, 1234, 272, 0)\n\n'
                                 '{"cliCode": '
                                 '[{"Return": "0x0000", "CLI": "Successful"}], '
@@ -110,7 +115,7 @@ class InfortrendNASTestData(object):
         'size': '107321753600',
     }]
 
-    def fake_get_channel_status(self, status='UP'):
+    def fake_get_channel_status(self, ch1_status='UP'):
         return [{
             'datalink': 'mgmt0',
             'status': 'UP',
@@ -123,15 +128,15 @@ class InfortrendNASTestData(object):
             'datalink': 'CH0',
             'status': 'UP',
             'typeConfig': 'DHCP',
-            'IP': '172.27.112.223',
+            'IP': self.fake_channel_ip[0],
             'MAC': '00:d0:23:80:15:a6',
             'netmask': '255.255.240.0',
             'type': 'dhcp',
             'gateway': '172.27.127.254'}, {
             'datalink': 'CH1',
-            'status': status,
+            'status': ch1_status,
             'typeConfig': 'DHCP',
-            'IP': '172.27.113.209',
+            'IP': self.fake_channel_ip[1],
             'MAC': '00:d0:23:40:15:a6',
             'netmask': '255.255.240.0',
             'type': 'dhcp',
@@ -162,18 +167,18 @@ class InfortrendNASTestData(object):
         'id': '537178178'}, {
         'quota': '32212254720',
         'used': '0',
-        'name': '4d6984fd-8572-4467-964f-24936a8c4ea2',
+        'name': fake_share_id[0],
         'type': 'subfolder',
         'id': '805306752'}, {
         'quota': '53687091200',
         'used': '0',
-        'name': 'a7b933e6-bb77-4823-a86f-f2c3ab41a8a5',
+        'name': fake_share_id[1],
         'type': 'subfolder',
         'id': '69',
     }]
 
     fake_share_nfs = {
-        'share_id': 'f54a7219-0a2b-4d70-8e2e-b63ba65701fd',
+        'share_id': fake_share_id[0],
         'availability_zone': 'nova',
         'terminated_at': 'datetime.datetime(2017, 5, 8, 8, 27, 25)',
         'availability_zone_id': 'fd32d76d-b5a8-4c5c-93d7-8f09fc2a8ad3',
@@ -184,11 +189,11 @@ class InfortrendNASTestData(object):
         'snapshot_id': None,
         'deleted_at': None,
         'id': '5a0aa06e-1c57-4996-be46-b81e360e8866',
-        'size': 10,
+        'size': 30,
         'replica_state': None,
         'user_id': '4944594433f0405588928a4212964658',
-        'export_location': '172.27.112.223:/LV-1/share-pool-01/'
-                           'f54a7219-0a2b-4d70-8e2e-b63ba65701fd',
+        'export_location': '172.27.112.223:/LV-1/share-pool-01/' +
+                           fake_share_id[0],
         'display_description': None,
         'consistency_group_id': None,
         'project_id': '0e63326c50a246ac81fa1a0c8e003d5b',
@@ -199,7 +204,7 @@ class InfortrendNASTestData(object):
         'deleted': 'False',
         'host': 'compute@ift-manila#share-pool-01',
         'access_rules_status': 'active',
-        'display_name': 'test_share',
+        'display_name': 'nfs-01',
         'name': 'share-5a0aa06e-1c57-4996-be46-b81e360e8866',
         'created_at': 'datetime.datetime(2017, 5, 8, 8, 23, 29)',
         'share_proto': 'NFS',
@@ -214,8 +219,7 @@ class InfortrendNASTestData(object):
             'oss': False,
             'sftp': False,
             'nfs': status,
-            'directory': '/LV-1/share-pool-01/'
-                         '1699fbd9-cc92-42f5-9b82-1f9c0e8f7dde',
+            'directory': '/LV-1/share-pool-01/' + self.fake_share_id[0],
             'exist': True,
             'afp': False,
             'webdav': False
@@ -236,7 +240,7 @@ class InfortrendNASTestData(object):
         return fake_share_status_nfs
 
     fake_share_cifs = {
-        'share_id': '524ac17d-ce1b-4a80-a4c4-eb33e5119a5b',
+        'share_id': fake_share_id[1],
         'availability_zone': 'nova',
         'terminated_at': None,
         'availability_zone_id': 'fd32d76d-b5a8-4c5c-93d7-8f09fc2a8ad3',
@@ -247,7 +251,7 @@ class InfortrendNASTestData(object):
         'snapshot_id': None,
         'deleted_at': None,
         'id': 'aac4fe64-7a9c-472a-b156-9adbb50b4d29',
-        'size': 15,
+        'size': 50,
         'replica_state': None,
         'user_id': '4944594433f0405588928a4212964658',
         'export_location': None,
@@ -261,7 +265,7 @@ class InfortrendNASTestData(object):
         'deleted': 'False',
         'host': 'compute@ift-manila#share-pool-01',
         'access_rules_status': 'active',
-        'display_name': 'test-cifs',
+        'display_name': 'cifs-01',
         'name': 'share-aac4fe64-7a9c-472a-b156-9adbb50b4d29',
         'created_at': 'datetime.datetime(2017, 5, 9, 2, 28, 35)',
         'share_proto': 'CIFS',
@@ -276,8 +280,7 @@ class InfortrendNASTestData(object):
             'oss': False,
             'sftp': False,
             'nfs': False,
-            'directory': '/LV-1/share-pool-01/'
-                         '524ac17d-ce1b-4a80-a4c4-eb33e5119a5b',
+            'directory': '/LV-1/share-pool-01/' + self.fake_share_id[1],
             'exist': True,
             'afp': False,
             'webdav': False
@@ -287,7 +290,7 @@ class InfortrendNASTestData(object):
                 'available': True,
                 'encrypt': False,
                 'description': '',
-                'sharename': 'test-cifs',
+                'sharename': 'cifs-01',
                 'failover': '',
                 'AIO': True,
                 'priv': 'None',
@@ -296,7 +299,68 @@ class InfortrendNASTestData(object):
             }
         return fake_share_status_cifs
 
-
+    fake_subfolder_data = [{
+        'size': '6',
+        'index': '34',
+        'description': '',
+        'encryption': '',
+        'isEnd': False,
+        'share': False,
+        'volumeId': '6541BAFB2E6C57B6',
+        'quota': '',
+        'modifyTime': '2017-04-06 11:35',
+        'owner': 'A',
+        'path': '/LV-1/share-pool-01/UserHome',
+        'subshare': True,
+        'type': 'subfolder',
+        'empty': False,
+        'name': 'UserHome'}, {
+        'size': '6',
+        'index': '39',
+        'description': '',
+        'encryption': '',
+        'isEnd': False,
+        'share': False,
+        'volumeId': '6541BAFB2E6C57B6',
+        'quota': '10737418240',
+        'modifyTime': '2017-04-27 15:44',
+        'owner': 'A',
+        'path': '/LV-1/share-pool-01/manila-unmanage-test-manage',
+        'subshare': False,
+        'type': 'subfolder',
+        'empty': True,
+        'name': 'manila-unmanage-test-manage'}, {
+        'size': '6',
+        'index': '45',
+        'description': '',
+        'encryption': '',
+        'isEnd': False,
+        'share': True,
+        'volumeId': '6541BAFB2E6C57B6',
+        'quota': '32212254720',
+        'modifyTime': '2017-04-27 16:15',
+        'owner': 'A',
+        'path': '/LV-1/share-pool-01/' + fake_share_id[0],
+        'subshare': False,
+        'type': 'subfolder',
+        'empty': True,
+        'name': fake_share_id[0]}, {
+        'size': '6',
+        'index': '512',
+        'description': '',
+        'encryption': '',
+        'isEnd': True,
+        'share': True,
+        'volumeId': '6541BAFB2E6C57B6',
+        'quota': '53687091200',
+        'modifyTime': '2017-04-27 16:16',
+        'owner': 'A',
+        'path': '/LV-1/share-pool-01/' + fake_share_id[1],
+        'subshare': False,
+        'type': 'subfolder',
+        'empty': True,
+        'name': fake_share_id[1],
+    }]
 
 
 

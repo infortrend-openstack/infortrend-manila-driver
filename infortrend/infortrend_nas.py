@@ -154,7 +154,7 @@ class InfortrendNAS(object):
 
         if rc != 0:
             msg = _('NASCLI error, returned: %(result)s.') % {
-                        'result': result}
+                'result': result}
             LOG.error(msg)
             raise exception.InfortrendCLIException(
                 err=msg, rc=rc, out=result)
@@ -192,7 +192,7 @@ class InfortrendNAS(object):
                                         'ch': ch})
         if len(channel_list) != 0:
             msg = _('Channel setting %(channel_list)s is invalid!') % {
-                        'channel_list': channel_list}
+                'channel_list': channel_list}
             LOG.error(msg)
             raise exception.InfortrendNASException(message=msg)
 
@@ -211,7 +211,7 @@ class InfortrendNAS(object):
 
         if len(pool_list) != 0:
             msg = _('Please create %(pool_list)s pool in advance!') % {
-                        'pool_list': pool_list}
+                'pool_list': pool_list}
             LOG.error(msg)
             raise exception.InfortrendNASException(message=msg)
 
@@ -283,7 +283,7 @@ class InfortrendNAS(object):
         self._ensure_protocol_on(share_path, share_proto, display_name)
 
         LOG.info('Create Share [%(share_id)s] completed.', {
-                     'share_id': share['share_id']})
+            'share_id': share['share_id']})
 
         return self._export_location(share, share_proto, pool_path)
 
@@ -341,10 +341,10 @@ class InfortrendNAS(object):
             self._execute(command_line)
         else:
             LOG.warning('Share [%(share_id)s] is already deleted.', {
-                            'share_id': share['share_id']})
+                'share_id': share['share_id']})
 
         LOG.info('Delete Share [%(share_id)s] completed.', {
-                     'share_id': share['share_id']})
+            'share_id': share['share_id']})
 
     def _check_share_exist(self, pool_name, share_name):
         share_exist = False
@@ -415,7 +415,7 @@ class InfortrendNAS(object):
         elif share_proto == 'cifs':
             if not self._check_user_exist(access_to):
                 msg = _('Please create user [%(user)s] in advance.') % {
-                            'user': access_to}
+                    'user': access_to}
                 LOG.error(msg)
                 raise exception.InfortrendNASException(err=msg)
 
@@ -492,7 +492,7 @@ class InfortrendNAS(object):
         elif share_proto == 'cifs':
             if not self._check_user_exist(access_to):
                 LOG.warning('User [%(user)s] had been removed.', {
-                                'user': access_to})
+                    'user': access_to})
                 return
             command_line = ['acl', 'set', share_path,
                             '-u', access_to, '-a', 'd']
@@ -622,7 +622,7 @@ class InfortrendNAS(object):
 
         if not self._check_share_exist(pool_name, share['share_id']):
             LOG.warning('Share [%(share_name)s] does not exist.', {
-                            'share_name': share['share_id']})
+                'share_name': share['share_id']})
             return
 
         unmanage_name = self.UNMANAGE_PREFIX % share['display_name']

@@ -13,7 +13,6 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
-import copy
 import mock
 import ddt
 
@@ -64,8 +63,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
                 }
             }
             self._iftnas.channel_dict = {
-                '0': '172.27.112.223',
-                '1': '172.27.113.209',
+                '0': self.cli_data.fake_channel_ip[0],
+                '1': self.cli_data.fake_channel_ip[1],
             }
 
     def test_parser_with_service_status(self):
@@ -138,8 +137,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
     def test_check_channels_status(self):
         expect_channel_dict = {
-            '0': '172.27.112.223',
-            '1': '172.27.113.209',
+            '0': self.cli_data.fake_channel_ip[0],
+            '1': self.cli_data.fake_channel_ip[1],
         }
         self._get_driver(self.fake_conf)
         self._iftnas._execute = mock.Mock(
@@ -209,8 +208,12 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_create_share_nfs(self, mock_execute):
         fake_share_id = self.cli_data.fake_share_nfs['share_id']
         expect_locations = [
-            '172.27.112.223:/LV-1/share-pool-01/' + fake_share_id,
-            '172.27.113.209:/LV-1/share-pool-01/' + fake_share_id]
+            self.cli_data.fake_channel_ip[0] +
+            ':/LV-1/share-pool-01/' + fake_share_id,
+            self.cli_data.fake_channel_ip[1] +
+            ':/LV-1/share-pool-01/' + fake_share_id,
+        ]
+
         self._get_driver(self.fake_conf, True)
         mock_execute.side_effect = [
             SUCCEED,  # create folder
@@ -230,8 +233,12 @@ class InfortrendNASDriverTestCase(test.TestCase):
         fake_share_id = self.cli_data.fake_share_cifs['share_id']
         fake_display_name = self.cli_data.fake_share_cifs['display_name']
         expect_locations = [
-            '\\\\172.27.112.223\\' + fake_display_name,
-            '\\\\172.27.113.209\\' + fake_display_name]
+            '\\\\' + self.cli_data.fake_channel_ip[0] +
+            '\\' + fake_display_name,
+            '\\\\' + self.cli_data.fake_channel_ip[1] +
+            '\\' + fake_display_name,
+        ]
+
         self._get_driver(self.fake_conf, True)
         mock_execute.side_effect = [
             SUCCEED,  # create folder
@@ -246,9 +253,6 @@ class InfortrendNASDriverTestCase(test.TestCase):
         mock_execute.assert_any_call(
             ['share', '/LV-1/share-pool-01/' + fake_share_id,
              'cifs', 'on', '-n', fake_display_name])
-
-
-
 
 
 
