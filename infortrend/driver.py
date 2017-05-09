@@ -173,14 +173,24 @@ class InfortrendNASDriver(driver.ShareDriver):
                   ``access_rules`` parameter.
         """
         LOG.debug(
-            'update access rules for share: %(share)s, '
+            'Update access rules for share: %(share)s, '
             'access_rules: %(access_rules)s, '
             'add_rules: %(add_rules)s, '
-            'delete_rules: %(delete_rules)s,', {
-                'share': dict(share), 'access_rules': access_rules,
-                'add_rules': add_rules, 'delete_rules': delete_rules})
+            'delete_rules: %(delete_rules)s', {
+                'share': dict(share),
+                'access_rules': self._list_of_dict(access_rules),
+                'add_rules': self._list_of_dict(add_rules),
+                'delete_rules': self._list_of_dict(delete_rules),
+            })
         return self.ift_nas.update_access(share, access_rules, add_rules,
                                           delete_rules, share_server)
+
+    def _list_of_dict(self, list_of_dict):
+        temp_list = []
+        for data in list_of_dict:
+            temp_dict = dict(data)
+            temp_list.append(temp_dict)
+        return temp_list
 
     def create_share(self, context, share, share_server=None):
         """Is called to create share."""
