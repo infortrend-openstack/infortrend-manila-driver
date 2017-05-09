@@ -24,7 +24,6 @@ from manila.share import configuration
 from manila.share.drivers.infortrend import driver
 from manila.share.drivers.infortrend import infortrend_nas
 from manila.tests.share.drivers.infortrend import test_infortrend_data
-from manila.tests import fake_share
 
 CONF = cfg.CONF
 
@@ -183,7 +182,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self.assertDictMatch(expect_pool_dict, self._iftnas.pool_dict)
 
     def test_unknow_pools_setup(self):
-        self.fake_conf.set_default('infortrend_share_pools', 'chengwei')
+        self.fake_conf.set_default(
+            'infortrend_share_pools', 'chengwei, share-pool-01')
         self._get_driver(self.fake_conf)
         self._iftnas._execute = mock.Mock(
             return_value=(0, self.cli_data.fake_folder_status))
@@ -254,8 +254,43 @@ class InfortrendNASDriverTestCase(test.TestCase):
             ['share', '/LV-1/share-pool-01/' + fake_share_id,
              'cifs', 'on', '-n', fake_display_name])
 
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_delete_share_nfs(self, mock_execute):
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.cli_data.fake_subfolder_data),  # pagelist folder
+            SUCCEED,  # delete folder
+        ]
 
+        self._iftnas.delete_share(self.cli_data.fake_share_nfs)
 
+        mock_execute.assert_any_call(
+            ['folder', 'options', '6541BAFB2E6C57B6', 'share-pool-01',
+             '-d', self.cli_data.fake_share_nfs['share_id']])
 
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_delete_share_cifs(self, mock_execute):
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.cli_data.fake_subfolder_data),  # pagelist folder
+            SUCCEED,  # delete folder
+        ]
 
+        self._iftnas.delete_share(self.cli_data.fake_share_cifs)
+
+        mock_execute.assert_any_call(
+            ['folder', 'options', '6541BAFB2E6C57B6', 'share-pool-01',
+             '-d', self.cli_data.fake_share_cifs['share_id']])
+
+    @mock.patch.object(infortrend_nas.LOG, 'warning')
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_delete_non_exist_share_nfs(self, mock_execute, log_warning):
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.cli_data.fake_subfolder_data),  # pagelist folder
+        ]
+
+        self._iftnas.delete_share(self.cli_data.non_exist_share)
+
+        self.assertEqual(1, log_warning.call_count)
 

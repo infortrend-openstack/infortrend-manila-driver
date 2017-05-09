@@ -19,6 +19,9 @@ class InfortrendNASTestData(object):
     fake_share_id = ['4d6984fd-8572-4467-964f-24936a8c4ea2',
                      'a7b933e6-bb77-4823-a86f-f2c3ab41a8a5']
 
+    fake_id = ['iftt8862-2226-0126-7610-chengweichou',
+               '987c8763-3333-4444-5555-666666666666']
+
     fake_channel_ip = ['172.27.112.223', '172.27.113.209']
 
     fake_service_status_data = ('(64175, 1234, 272, 0)\n\n'
@@ -298,6 +301,41 @@ class InfortrendNASTestData(object):
                 'ABE': True,
             }
         return fake_share_status_cifs
+
+    non_exist_share = {
+        'share_id': fake_id[0],
+        'availability_zone': 'nova',
+        'terminated_at': 'datetime.datetime(2017, 5, 8, 8, 27, 25)',
+        'availability_zone_id': 'fd32d76d-b5a8-4c5c-93d7-8f09fc2a8ad3',
+        'updated_at': 'datetime.datetime(2017, 5, 8, 8, 27, 25)',
+        'share_network_id': None,
+        'export_locations': [],
+        'share_server_id': None,
+        'snapshot_id': None,
+        'deleted_at': None,
+        'id': fake_id[1],
+        'size': 30,
+        'replica_state': None,
+        'user_id': '4944594433f0405588928a4212964658',
+        'export_location': '172.27.112.223:/LV-1/share-pool-01/' +
+                           fake_id[0],
+        'display_description': None,
+        'consistency_group_id': None,
+        'project_id': '0e63326c50a246ac81fa1a0c8e003d5b',
+        'launched_at': 'datetime.datetime(2017, 5, 8, 8, 23, 33)',
+        'scheduled_at': 'datetime.datetime(2017, 5, 8, 8, 23, 29)',
+        'status': 'available',
+        'share_type_id': '23d8c637-0192-47fa-b921-958f22ed772f',
+        'deleted': 'False',
+        'host': 'compute@ift-manila#share-pool-01',
+        'access_rules_status': 'active',
+        'display_name': 'nfs-01',
+        'name': 'share-5a0aa06e-1c57-4996-be46-b81e360e8866',
+        'created_at': 'datetime.datetime(2017, 5, 8, 8, 23, 29)',
+        'share_proto': 'NFS',
+        'is_public': False,
+        'source_cgsnapshot_member_id': None
+    }
 
     fake_subfolder_data = [{
         'size': '6',
