@@ -16,8 +16,8 @@
 
 class InfortrendNASTestData(object):
 
-    fake_share_id = ['4d6984fd-8572-4467-964f-24936a8c4ea2',
-                     'a7b933e6-bb77-4823-a86f-f2c3ab41a8a5']
+    fake_share_id = ['4d6984fd-8572-4467-964f-24936a8c4ea2',  # NFS
+                     'a7b933e6-bb77-4823-a86f-f2c3ab41a8a5']  # CIFS
 
     fake_id = ['iftt8862-2226-0126-7610-chengweichou',
                '987c8763-3333-4444-5555-666666666666']
@@ -400,11 +400,80 @@ class InfortrendNASTestData(object):
         'name': fake_share_id[1],
     }]
 
+    fake_access_rules_nfs = [{
+        'share_id': fake_share_id[0],
+        'deleted': 'False',
+        'created_at': 'datetime.datetime(2017, 5, 9, 8, 41, 21)',
+        'updated_at': None,
+        'access_type': 'ip',
+        'access_to': '172.27.1.1',
+        'access_level': 'rw',
+        'instance_mappings': [],
+        'deleted_at': None,
+        'id': 'fa60b50f-1428-44a2-9931-7e31f0c5b033'}, {
+        'share_id': fake_share_id[0],
+        'deleted': 'False',
+        'created_at': 'datetime.datetime(2017, 5, 9, 8, 45, 37)',
+        'updated_at': None,
+        'access_type': 'ip',
+        'access_to': '172.27.1.2',
+        'access_level': 'rw',
+        'instance_mappings': [],
+        'deleted_at': None,
+        'id': '9bcdd5e6-11c7-4f8f-939c-84fa2f3334bc'
+    }]
 
+    fake_add_rules_ip = [{
+        'share_id': fake_share_id[0],
+        'deleted': 'False',
+        'created_at': 'datetime.datetime(2017, 5, 9, 8, 45, 37)',
+        'updated_at': None,
+        'access_type': 'ip',
+        'access_to': '172.27.1.2',
+        'access_level': 'rw',
+        'instance_mappings': [],
+        'deleted_at': None,
+        'id': '9bcdd5e6-11c7-4f8f-939c-84fa2f3334bc'
+    }]
 
+    fake_delete_rule_ip = [{
+        'share_id': fake_share_id[0],
+        'deleted': 'False',
+        'created_at': 'datetime.datetime(2017, 5, 9, 8, 41, 21)',
+        'updated_at': None,
+        'access_type': 'ip',
+        'access_to': '172.27.1.1',
+        'access_level': 'rw',
+        'instance_mappings': [],
+        'deleted_at': None,
+        'id': 'fa60b50f-1428-44a2-9931-7e31f0c5b033'
+    }]
 
+    fake_add_rules_user = [{
+        'share_id': fake_share_id[1],
+        'deleted': 'False',
+        'created_at': 'datetime.datetime(2017, 5, 9, 9, 17, 36)',
+        'updated_at': None,
+        'access_type': 'user',
+        'access_to': 'user01',
+        'access_level': 'rw',
+        'instance_mappings': [],
+        'deleted_at': None,
+        'id': 'de285ee2-1d82-4510-aae7-033b8369bd1a'
+    }]
 
-
+    fake_delete_rule_user = [{
+        'share_id': fake_share_id[1],
+        'deleted': 'False',
+        'created_at': 'datetime.datetime(2017, 5, 9, 9, 17, 36)',
+        'updated_at': None,
+        'access_type': 'user',
+        'access_to': 'user01',
+        'access_level': 'rw',
+        'instance_mappings': [],
+        'deleted_at': None,
+        'id': 'de285ee2-1d82-4510-aae7-033b8369bd1a'
+    }]
 
 
 

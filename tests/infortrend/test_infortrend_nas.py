@@ -222,7 +222,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
             SUCCEED,  # enable proto
             (0, self.cli_data.fake_get_channel_status())]  # update channel
 
-        locations = self._iftnas.create_share(self.cli_data.fake_share_nfs)
+        locations = self._driver.create_share(
+            self._ctxt, self.cli_data.fake_share_nfs)
 
         self.assertEqual(expect_locations, locations)
         mock_execute.assert_any_call(
@@ -247,7 +248,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
             SUCCEED,  # enable proto
             (0, self.cli_data.fake_get_channel_status())]  # update channel
 
-        locations = self._iftnas.create_share(self.cli_data.fake_share_cifs)
+        locations = self._driver.create_share(
+            self._ctxt, self.cli_data.fake_share_cifs)
 
         self.assertEqual(expect_locations, locations)
         mock_execute.assert_any_call(
@@ -262,7 +264,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
             SUCCEED,  # delete folder
         ]
 
-        self._iftnas.delete_share(self.cli_data.fake_share_nfs)
+        self._driver.delete_share(
+            self._ctxt, self.cli_data.fake_share_nfs)
 
         mock_execute.assert_any_call(
             ['folder', 'options', '6541BAFB2E6C57B6', 'share-pool-01',
@@ -276,7 +279,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
             SUCCEED,  # delete folder
         ]
 
-        self._iftnas.delete_share(self.cli_data.fake_share_cifs)
+        self._driver.delete_share(
+            self._ctxt, self.cli_data.fake_share_cifs)
 
         mock_execute.assert_any_call(
             ['folder', 'options', '6541BAFB2E6C57B6', 'share-pool-01',
@@ -284,13 +288,66 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
     @mock.patch.object(infortrend_nas.LOG, 'warning')
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
-    def test_delete_non_exist_share_nfs(self, mock_execute, log_warning):
+    def test_delete_non_exist_share(self, mock_execute, log_warning):
         self._get_driver(self.fake_conf, True)
         mock_execute.side_effect = [
             (0, self.cli_data.fake_subfolder_data),  # pagelist folder
         ]
 
-        self._iftnas.delete_share(self.cli_data.non_exist_share)
+        self._driver.delete_share(
+            self._ctxt, self.cli_data.non_exist_share)
 
         self.assertEqual(1, log_warning.call_count)
+
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_update_access_nfs_add_rule(self, mock_execute):
+        share_id = self.cli_data.fake_share_nfs['share_id']
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            SUCCEED,
+        ]
+
+        self._driver.update_access(
+            self._ctxt,
+            self.cli_data.fake_share_nfs,
+            self.cli_data.fake_access_rules_nfs,
+            self.cli_data.fake_add_rules_ip,
+            [],
+        )
+
+        mock_execute.assert_called_once_with(
+            ['share', 'options', '/LV-1/share-pool-01/' + share_id,
+             'nfs', '-h', '172.27.1.2', '-p', 'rw'])
+
+    def test_update_access_nfs_wrong_rule(self):
+        self._get_driver(self.fake_conf, True)
+
+        self.assertRaises(
+            exception.InvalidShareAccess,
+            self._driver.update_access,
+            self._ctxt,
+            self.cli_data.fake_share_nfs,
+            self.cli_data.fake_access_rules_nfs,
+            self.cli_data.fake_add_rules_user,
+            [])
+
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_update_access_nfs_delete_rule(self, mock_execute):
+        share_id = self.cli_data.fake_share_nfs['share_id']
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            SUCCEED,
+        ]
+
+        self._driver.update_access(
+            self._ctxt,
+            self.cli_data.fake_share_nfs,
+            self.cli_data.fake_access_rules_nfs,
+            [],
+            self.cli_data.fake_delete_rule_ip,
+        )
+
+        mock_execute.assert_called_once_with(
+            ['share', 'options', '/LV-1/share-pool-01/' + share_id,
+             'nfs', '-c', '172.27.1.1'])
 
