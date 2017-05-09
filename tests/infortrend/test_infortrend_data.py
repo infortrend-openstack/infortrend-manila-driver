@@ -107,7 +107,8 @@ class InfortrendNASTestData(object):
         'directory': '/LV-1/share-pool-02',
         'volumeId': '147A8FB67DA39914',
         'mounted': True,
-        'size': '107321753600'}]
+        'size': '107321753600',
+    }]
 
     def fake_get_channel_status(self, status='UP'):
         return [{
@@ -150,7 +151,8 @@ class InfortrendNASTestData(object):
             'MAC': '00:d0:23:20:15:a6',
             'netmask': '',
             'type': '',
-            'gateway': ''}]
+            'gateway': '',
+        }]
 
     fake_fquota_status = [{
         'quota': '10737418240',
@@ -167,7 +169,8 @@ class InfortrendNASTestData(object):
         'used': '0',
         'name': 'a7b933e6-bb77-4823-a86f-f2c3ab41a8a5',
         'type': 'subfolder',
-        'id': '69'}]
+        'id': '69',
+    }]
 
     fake_share_nfs = {
         'share_id': 'f54a7219-0a2b-4d70-8e2e-b63ba65701fd',
@@ -215,7 +218,8 @@ class InfortrendNASTestData(object):
                          '1699fbd9-cc92-42f5-9b82-1f9c0e8f7dde',
             'exist': True,
             'afp': False,
-            'webdav': False}]
+            'webdav': False
+        }]
         if status:
             fake_share_status_nfs[0]['nfs_detail'] = {
                 'hostList': [{
@@ -226,13 +230,71 @@ class InfortrendNASTestData(object):
                     'host': '*',
                     'gid': '65534',
                     'mode': 'async',
-                    'no_subtree_check': 'no_subtree_check'}]
+                    'no_subtree_check': 'no_subtree_check',
+                }]
             }
         return fake_share_status_nfs
 
+    fake_share_cifs = {
+        'share_id': '524ac17d-ce1b-4a80-a4c4-eb33e5119a5b',
+        'availability_zone': 'nova',
+        'terminated_at': None,
+        'availability_zone_id': 'fd32d76d-b5a8-4c5c-93d7-8f09fc2a8ad3',
+        'updated_at': 'datetime.datetime(2017, 5, 9, 2, 28, 35)',
+        'share_network_id': None,
+        'export_locations': [],
+        'share_server_id': None,
+        'snapshot_id': None,
+        'deleted_at': None,
+        'id': 'aac4fe64-7a9c-472a-b156-9adbb50b4d29',
+        'size': 15,
+        'replica_state': None,
+        'user_id': '4944594433f0405588928a4212964658',
+        'export_location': None,
+        'display_description': None,
+        'consistency_group_id': None,
+        'project_id': '0e63326c50a246ac81fa1a0c8e003d5b',
+        'launched_at': None,
+        'scheduled_at': 'datetime.datetime(2017, 5, 9, 2, 28, 35)',
+        'status': 'creating',
+        'share_type_id': '23d8c637-0192-47fa-b921-958f22ed772f',
+        'deleted': 'False',
+        'host': 'compute@ift-manila#share-pool-01',
+        'access_rules_status': 'active',
+        'display_name': 'test-cifs',
+        'name': 'share-aac4fe64-7a9c-472a-b156-9adbb50b4d29',
+        'created_at': 'datetime.datetime(2017, 5, 9, 2, 28, 35)',
+        'share_proto': 'CIFS',
+        'is_public': False,
+        'source_cgsnapshot_member_id': None
+    }
 
-
-
+    def fake_get_share_status_cifs(self, status=False):
+        fake_share_status_cifs = [{
+            'ftp': False,
+            'cifs': status,
+            'oss': False,
+            'sftp': False,
+            'nfs': False,
+            'directory': '/LV-1/share-pool-01/'
+                         '524ac17d-ce1b-4a80-a4c4-eb33e5119a5b',
+            'exist': True,
+            'afp': False,
+            'webdav': False
+        }]
+        if status:
+            fake_share_status_cifs[0]['cifs_detail'] = {
+                'available': True,
+                'encrypt': False,
+                'description': '',
+                'sharename': 'test-cifs',
+                'failover': '',
+                'AIO': True,
+                'priv': 'None',
+                'recycle_bin': False,
+                'ABE': True,
+            }
+        return fake_share_status_cifs
 
 
 
