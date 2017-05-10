@@ -304,6 +304,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_update_access_nfs_add_rule(self, mock_execute):
         share_id = self.m_data.fake_share_nfs['share_id']
+        share_path = '/LV-1/share-pool-01/' + share_id
         self._get_driver(self.fake_conf, True)
         mock_execute.side_effect = [
             SUCCEED,
@@ -318,7 +319,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         )
 
         mock_execute.assert_called_once_with(
-            ['share', 'options', '/LV-1/share-pool-01/' + share_id,
+            ['share', 'options', share_path,
              'nfs', '-h', '172.27.1.2', '-p', 'rw'])
 
     def test_update_access_nfs_wrong_rule(self):
@@ -336,6 +337,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_update_access_nfs_delete_rule(self, mock_execute):
         share_id = self.m_data.fake_share_nfs['share_id']
+        share_path = '/LV-1/share-pool-01/' + share_id
         self._get_driver(self.fake_conf, True)
         mock_execute.side_effect = [
             SUCCEED,
@@ -350,12 +352,13 @@ class InfortrendNASDriverTestCase(test.TestCase):
         )
 
         mock_execute.assert_called_once_with(
-            ['share', 'options', '/LV-1/share-pool-01/' + share_id,
+            ['share', 'options', share_path,
              'nfs', '-c', '172.27.1.1'])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_update_access_cifs_add_user_rw(self, mock_execute):
         share_id = self.m_data.fake_share_cifs['share_id']
+        share_path = '/LV-1/share-pool-01/' + share_id
         self._get_driver(self.fake_conf, True)
         mock_execute.side_effect = [
             (0, self.nas_data.fake_cifs_user_list),  # check user exist
@@ -372,13 +375,14 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         mock_execute.assert_has_calls([
             mock.call(['useradmin', 'user', 'list']),
-            mock.call(['acl', 'set',
-                       '/LV-1/share-pool-01/' + share_id,
-                       '-u', 'user01', '-a', 'f'])])
+            mock.call(['acl', 'set', share_path,
+                       '-u', 'user01', '-a', 'f'])
+        ])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_update_access_cifs_add_user_ro(self, mock_execute):
         share_id = self.m_data.fake_share_cifs['share_id']
+        share_path = '/LV-1/share-pool-01/' + share_id
         self._get_driver(self.fake_conf, True)
         mock_execute.side_effect = [
             (0, self.nas_data.fake_cifs_user_list),  # check user exist
@@ -395,9 +399,9 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         mock_execute.assert_has_calls([
             mock.call(['useradmin', 'user', 'list']),
-            mock.call(['acl', 'set',
-                       '/LV-1/share-pool-01/' + share_id,
-                       '-u', 'user02', '-a', 'r'])])
+            mock.call(['acl', 'set', share_path,
+                       '-u', 'user02', '-a', 'r'])
+        ])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_update_access_cifs_user_not_exist(self, mock_execute):
@@ -418,6 +422,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_update_access_cifs_delete_rule(self, mock_execute):
         share_id = self.m_data.fake_share_cifs['share_id']
+        share_path = '/LV-1/share-pool-01/' + share_id
         self._get_driver(self.fake_conf, True)
         mock_execute.side_effect = [
             (0, self.nas_data.fake_cifs_user_list),  # check user exist
@@ -434,9 +439,9 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         mock_execute.assert_has_calls([
             mock.call(['useradmin', 'user', 'list']),
-            mock.call(['acl', 'set',
-                       '/LV-1/share-pool-01/' + share_id,
-                       '-u', 'user01', '-a', 'd'])])
+            mock.call(['acl', 'set', share_path,
+                       '-u', 'user01', '-a', 'd'])
+        ])
 
     def test_update_access_cifs_wrong_rule(self):
         self._get_driver(self.fake_conf, True)
@@ -450,16 +455,74 @@ class InfortrendNASDriverTestCase(test.TestCase):
             self.m_data.fake_rule_ip_1,
             [])
 
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_clear_access_nfs(self, mock_execute):
+        share_id = self.m_data.fake_share_nfs['share_id']
+        share_path = '/LV-1/share-pool-01/' + share_id
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.nas_data.fake_share_status_nfs_with_rules),
+            SUCCEED,  # clear access
+            SUCCEED,
+            SUCCEED,  # allow access
+            SUCCEED,
+        ]
 
+        self._driver.update_access(
+            self._ctxt,
+            self.m_data.fake_share_nfs,
+            self.m_data.fake_access_rules_nfs,
+            [],
+            [],
+        )
 
+        mock_execute.assert_has_calls([
+            mock.call(['share', 'status', '-f', share_path]),
+            mock.call(['share', 'options', share_path,
+                       'nfs', '-c', '172.27.1.1']),
+            mock.call(['share', 'options', share_path,
+                       'nfs', '-c', '172.27.1.2']),
+            mock.call(['share', 'options', share_path,
+                       'nfs', '-h', '172.27.1.1', '-p', 'rw']),
+            mock.call(['share', 'options', share_path,
+                       'nfs', '-h', '172.27.1.2', '-p', 'rw']),
+        ])
 
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_clear_access_cifs(self, mock_execute):
+        share_id = self.m_data.fake_share_cifs['share_id']
+        share_path = '/LV-1/share-pool-01/' + share_id
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.nas_data.fake_share_status_cifs_with_rules),
+            SUCCEED,  # clear user01
+            SUCCEED,  # clear user02
+            (0, self.nas_data.fake_cifs_user_list),
+            SUCCEED,  # allow user02
+            (0, self.nas_data.fake_cifs_user_list),
+            SUCCEED,  # allow user01
+        ]
 
+        self._driver.update_access(
+            self._ctxt,
+            self.m_data.fake_share_cifs,
+            self.m_data.fake_access_rules_cifs,
+            [],
+            [],
+        )
 
-
-
-
-
-
-
+        mock_execute.assert_has_calls([
+            mock.call(['acl', 'get', share_path]),
+            mock.call(['acl', 'set', share_path,
+                       '-u', 'user01', '-a', 'd']),
+            mock.call(['acl', 'set', share_path,
+                       '-u', 'user02', '-a', 'd']),
+            mock.call(['useradmin', 'user', 'list']),
+            mock.call(['acl', 'set', share_path,
+                       '-u', 'user02', '-a', 'r']),
+            mock.call(['useradmin', 'user', 'list']),
+            mock.call(['acl', 'set', share_path,
+                       '-u', 'user01', '-a', 'f']),
+        ])
 
 

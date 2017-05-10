@@ -314,9 +314,81 @@ class InfortrendNASTestData(object):
         'Name': 'user02'
     }]
 
+    fake_share_status_nfs_with_rules = [{
+        'ftp': False,
+        'cifs': False,
+        'oss': False,
+        'sftp': False,
+        'nfs': True,
+        'directory': '/LV-1/share-pool-01/' + fake_share_id[0],
+        'exist': True,
+        'nfs_detail': {
+            'hostList': [{
+                'uid': '65534',
+                'insecure': 'insecure',
+                'squash': 'all',
+                'access': 'ro',
+                'host': '*',
+                'gid': '65534',
+                'mode': 'async',
+                'no_subtree_check':
+                'no_subtree_check'}, {
+                'uid': '65534',
+                'insecure': 'insecure',
+                'squash': 'all',
+                'access': 'rw',
+                'host': '172.27.1.1',
+                'gid': '65534',
+                'mode': 'async',
+                'no_subtree_check': 'no_subtree_check'}, {
+                'uid': '65534',
+                'insecure': 'insecure',
+                'squash': 'all',
+                'access': 'rw',
+                'host': '172.27.1.2',
+                'gid': '65534',
+                'mode': 'async',
+                'no_subtree_check': 'no_subtree_check'}]
+        },
+        'afp': False,
+        'webdav': False,
+    }]
 
-
-
+    fake_share_status_cifs_with_rules = [
+        {
+            'permission': {
+                'Read': True,
+                'Write': True,
+                'Execute': True},
+            'type': 'user',
+            'id': '100001',
+            'name': 'user01'
+        }, {
+            'permission': {
+                'Read': True,
+                'Write': False,
+                'Execute': True},
+            'type': 'user',
+            'id': '100002',
+            'name': 'user02'
+        }, {
+            'permission': {
+                'Read': True,
+                'Write': False,
+                'Execute': True},
+            'type': 'group@',
+            'id': '100',
+            'name': 'users'
+        }, {
+            'permission': {
+                'Read': True,
+                'Write': False,
+                'Execute': True},
+            'type': 'other@',
+            'id': '',
+            'name': ''
+        }
+    ]
 
 
 
