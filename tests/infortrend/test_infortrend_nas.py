@@ -525,4 +525,16 @@ class InfortrendNASDriverTestCase(test.TestCase):
                        '-u', 'user01', '-a', 'f']),
         ])
 
+    def test_get_pool(self):
+        self._get_driver(self.fake_conf, True)
+        pool = self._driver.get_pool(self.m_data.fake_share_nfs)
 
+        self.assertEqual('share-pool-01', pool)
+
+    def test_get_pool_without_host(self):
+        self._get_driver(self.fake_conf, True)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.nas_data.fake_subfolder_data))
+
+        pool = self._driver.get_pool(self.m_data.fake_share_cifs_no_host)
+        self.assertEqual('share-pool-01', pool)

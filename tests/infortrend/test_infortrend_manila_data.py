@@ -91,6 +91,40 @@ class InfortrendManilaTestData(object):
         'source_cgsnapshot_member_id': None
     }
 
+    fake_share_cifs_no_host = {
+        'share_id': fake_share_id[1],
+        'availability_zone': 'nova',
+        'terminated_at': None,
+        'availability_zone_id': 'fd32d76d-b5a8-4c5c-93d7-8f09fc2a8ad3',
+        'updated_at': 'datetime.datetime(2017, 5, 9, 2, 28, 35)',
+        'share_network_id': None,
+        'export_locations': [],
+        'share_server_id': None,
+        'snapshot_id': None,
+        'deleted_at': None,
+        'id': 'aac4fe64-7a9c-472a-b156-9adbb50b4d29',
+        'size': 50,
+        'replica_state': None,
+        'user_id': '4944594433f0405588928a4212964658',
+        'export_location': None,
+        'display_description': None,
+        'consistency_group_id': None,
+        'project_id': '0e63326c50a246ac81fa1a0c8e003d5b',
+        'launched_at': None,
+        'scheduled_at': 'datetime.datetime(2017, 5, 9, 2, 28, 35)',
+        'status': 'creating',
+        'share_type_id': '23d8c637-0192-47fa-b921-958f22ed772f',
+        'deleted': 'False',
+        'host': '',
+        'access_rules_status': 'active',
+        'display_name': 'cifs-01',
+        'name': 'share-aac4fe64-7a9c-472a-b156-9adbb50b4d29',
+        'created_at': 'datetime.datetime(2017, 5, 9, 2, 28, 35)',
+        'share_proto': 'CIFS',
+        'is_public': False,
+        'source_cgsnapshot_member_id': None
+    }
+
     fake_non_exist_share = {
         'share_id': fake_id[0],
         'availability_zone': 'nova',
