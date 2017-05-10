@@ -539,4 +539,35 @@ class InfortrendNASDriverTestCase(test.TestCase):
         pool = self._driver.get_pool(self.m_data.fake_share_cifs_no_host)
         self.assertEqual('share-pool-01', pool)
 
+    def test_ensure_share_nfs(self):
+        fake_share_id = self.m_data.fake_share_nfs['share_id']
+        expect_locations = [
+            self.nas_data.fake_channel_ip[0] +
+            ':/LV-1/share-pool-01/' + fake_share_id,
+            self.nas_data.fake_channel_ip[1] +
+            ':/LV-1/share-pool-01/' + fake_share_id,
+        ]
+        self._get_driver(self.fake_conf, True)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.nas_data.fake_get_channel_status()))
+
+        locations = self._driver.ensure_share(
+            self._ctxt, self.m_data.fake_share_nfs)
+        self.assertEqual(expect_locations, locations)
+
+    def test_ensure_share_cifs(self):
+        fake_display_name = self.m_data.fake_share_cifs['display_name']
+        expect_locations = [
+            '\\\\' + self.nas_data.fake_channel_ip[0] +
+            '\\' + fake_display_name,
+            '\\\\' + self.nas_data.fake_channel_ip[1] +
+            '\\' + fake_display_name,
+        ]
+        self._get_driver(self.fake_conf, True)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.nas_data.fake_get_channel_status()))
+
+        locations = self._driver.ensure_share(
+            self._ctxt, self.m_data.fake_share_cifs)
+        self.assertEqual(expect_locations, locations)
 
