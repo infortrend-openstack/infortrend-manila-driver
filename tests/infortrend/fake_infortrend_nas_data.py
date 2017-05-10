@@ -160,9 +160,9 @@ class InfortrendNASTestData(object):
         }]
 
     fake_fquota_status = [{
-        'quota': '10737418240',
+        'quota': '21474836480',
         'used': '0',
-        'name': 'manila-unmanage-test-manage',
+        'name': 'test-folder',
         'type': 'subfolder',
         'id': '537178178'}, {
         'quota': '32212254720',
@@ -253,14 +253,14 @@ class InfortrendNASTestData(object):
         'isEnd': False,
         'share': False,
         'volumeId': '6541BAFB2E6C57B6',
-        'quota': '10737418240',
+        'quota': '21474836480',
         'modifyTime': '2017-04-27 15:44',
         'owner': 'A',
-        'path': '/LV-1/share-pool-01/manila-unmanage-test-manage',
+        'path': '/LV-1/share-pool-01/test-folder',
         'subshare': False,
         'type': 'subfolder',
         'empty': True,
-        'name': 'manila-unmanage-test-manage'}, {
+        'name': 'test-folder'}, {
         'size': '6',
         'index': '45',
         'description': '',

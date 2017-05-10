@@ -252,6 +252,12 @@ class InfortrendNASDriver(driver.ShareDriver):
         :return: share_update dictionary with required key 'size',
                  which should contain size of the share.
         """
+        LOG.debug(
+            'Manage existing for share: %(share)s, '
+            'driver_options: %(driver_options)s, ', {
+                'share': dict(share),
+                'driver_options': dict(driver_options),
+            })
         return self.ift_nas.manage_existing(share, driver_options)
 
     def unmanage(self, share):
@@ -267,6 +273,10 @@ class InfortrendNASDriver(driver.ShareDriver):
         If provided share cannot be unmanaged, then raise an
         UnmanageInvalidShare exception, specifying a reason for the failure.
         """
+        LOG.debug(
+            'Unmanage share: %(share)s', {
+                'share': dict(share),
+            })
         return self.ift_nas.unmanage(share)
 
     def extend_share(self, share, new_size, share_server=None):

@@ -204,7 +204,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         mock_execute.assert_called_with(
             ['fquota', 'status', '6541BAFB2E6C57B6',
              'share-pool-01', '-t', 'folder'])
-        self.assertEqual(96636764160, pool_quota)
+        self.assertEqual(107374182400, pool_quota)
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_create_share_nfs(self, mock_execute):
@@ -222,7 +222,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
             SUCCEED,  # set size
             (0, self.nas_data.fake_get_share_status_nfs()),  # check proto
             SUCCEED,  # enable proto
-            (0, self.nas_data.fake_get_channel_status())]  # update channel
+            (0, self.nas_data.fake_get_channel_status())  # update channel
+        ]
 
         locations = self._driver.create_share(
             self._ctxt, self.m_data.fake_share_nfs)
@@ -248,7 +249,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
             SUCCEED,  # set size
             (0, self.nas_data.fake_get_share_status_cifs()),  # check proto
             SUCCEED,  # enable proto
-            (0, self.nas_data.fake_get_channel_status())]  # update channel
+            (0, self.nas_data.fake_get_channel_status())  # update channel
+        ]
 
         locations = self._driver.create_share(
             self._ctxt, self.m_data.fake_share_cifs)
@@ -540,12 +542,11 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self.assertEqual('share-pool-01', pool)
 
     def test_ensure_share_nfs(self):
-        fake_share_id = self.m_data.fake_share_nfs['share_id']
+        share_id = self.m_data.fake_share_nfs['share_id']
+        share_path = '/LV-1/share-pool-01/' + share_id
         expect_locations = [
-            self.nas_data.fake_channel_ip[0] +
-            ':/LV-1/share-pool-01/' + fake_share_id,
-            self.nas_data.fake_channel_ip[1] +
-            ':/LV-1/share-pool-01/' + fake_share_id,
+            self.nas_data.fake_channel_ip[0] + ':' + share_path,
+            self.nas_data.fake_channel_ip[1] + ':' + share_path,
         ]
         self._get_driver(self.fake_conf, True)
         self._iftnas._execute = mock.Mock(
@@ -572,15 +573,52 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self.assertEqual(expect_locations, locations)
 
     def test_extend_share(self):
-        fake_share_id = self.m_data.fake_share_nfs['share_id']
+        share_id = self.m_data.fake_share_nfs['share_id']
         self._get_driver(self.fake_conf, True)
         self._iftnas._execute = mock.Mock(return_value=SUCCEED)
 
         self._driver.extend_share(self.m_data.fake_share_nfs, 100)
+
         self._iftnas._execute.assert_called_once_with(
             ['fquota', 'create', '6541BAFB2E6C57B6', 'share-pool-01',
-             fake_share_id, '100G', '-t', 'folder'])
+             share_id, '100G', '-t', 'folder'])
 
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_manage_existing_nfs(self, mock_execute):
+        share_id = self.m_data.fake_share_for_manage['share_id']
+        pool_path = '/LV-1/share-pool-01'
+        origin_share_path = pool_path + '/' + 'test-folder'
+        export_share_path = pool_path + '/' + share_id
+        expect_result = {
+            'size': 20.0,
+            'export_locations': [
+                self.nas_data.fake_channel_ip[0] + ':' + export_share_path,
+                self.nas_data.fake_channel_ip[1] + ':' + export_share_path,
+            ]
+        }
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.nas_data.fake_subfolder_data),  # pagelist folder
+            (0, self.nas_data.fake_get_share_status_nfs()),  # check proto
+            SUCCEED,  # enable nfs
+            (0, self.nas_data.fake_fquota_status),  # get share size
+            SUCCEED,  # rename share
+            (0, self.nas_data.fake_get_channel_status())  # update channel
+        ]
 
+        result = self._driver.manage_existing(
+            self.m_data.fake_share_for_manage,
+            {}
+        )
 
-
+        self.assertEqual(expect_result, result)
+        mock_execute.assert_has_calls([
+            mock.call(['pagelist', 'folder', pool_path]),
+            mock.call(['share', 'status', '-f', origin_share_path]),
+            mock.call(['share', origin_share_path, 'nfs', 'on']),
+            mock.call(['fquota', 'status', '6541BAFB2E6C57B6',
+                       'share-pool-01', '-t', 'folder']),
+            mock.call(['folder', 'options', '6541BAFB2E6C57B6',
+                       'share-pool-01', '-e', 'test-folder', share_id]),
+            mock.call(['ifconfig', 'inet', 'show']),
+        ])
