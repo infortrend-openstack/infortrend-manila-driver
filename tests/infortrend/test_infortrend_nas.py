@@ -571,3 +571,16 @@ class InfortrendNASDriverTestCase(test.TestCase):
             self._ctxt, self.m_data.fake_share_cifs)
         self.assertEqual(expect_locations, locations)
 
+    def test_extend_share(self):
+        fake_share_id = self.m_data.fake_share_nfs['share_id']
+        self._get_driver(self.fake_conf, True)
+        self._iftnas._execute = mock.Mock(return_value=SUCCEED)
+
+        self._driver.extend_share(self.m_data.fake_share_nfs, 100)
+        self._iftnas._execute.assert_called_once_with(
+            ['fquota', 'create', '6541BAFB2E6C57B6', 'share-pool-01',
+             fake_share_id, '100G', '-t', 'folder'])
+
+
+
+
