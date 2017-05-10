@@ -23,8 +23,8 @@ from manila import context
 from manila.share import configuration
 from manila.share.drivers.infortrend import driver
 from manila.share.drivers.infortrend import infortrend_nas
-from manila.tests.share.drivers.infortrend import test_infortrend_nas_data
-from manila.tests.share.drivers.infortrend import test_infortrend_manila_data
+from manila.tests.share.drivers.infortrend import fake_infortrend_nas_data
+from manila.tests.share.drivers.infortrend import fake_infortrend_manila_data
 
 CONF = cfg.CONF
 
@@ -37,8 +37,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def __init__(self, *args, **kwargs):
         super(InfortrendNASDriverTestCase, self).__init__(*args, **kwargs)
         self._ctxt = context.get_admin_context()
-        self.nas_data = test_infortrend_nas_data.InfortrendNASTestData()
-        self.m_data = test_infortrend_manila_data.InfortrendManilaTestData()
+        self.nas_data = fake_infortrend_nas_data.InfortrendNASTestData()
+        self.m_data = fake_infortrend_manila_data.InfortrendManilaTestData()
 
     def setUp(self):
         CONF.set_default('driver_handles_share_servers', False)
@@ -538,3 +538,5 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         pool = self._driver.get_pool(self.m_data.fake_share_cifs_no_host)
         self.assertEqual('share-pool-01', pool)
+
+
