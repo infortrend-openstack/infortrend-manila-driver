@@ -717,3 +717,63 @@ class InfortrendNASDriverTestCase(test.TestCase):
             self._driver.manage_existing,
             self.m_data.fake_share_for_manage_nfs,
             {})
+
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_unmanage_nfs(self, mock_execute):
+        fake_share = self.m_data.fake_share_nfs
+        share_id = fake_share['share_id']
+        share_name = fake_share['display_name']
+        pool_path = '/LV-1/share-pool-01'
+        unmanage_name = 'manila-unmanage-%s' % share_name
+
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.nas_data.fake_subfolder_data),  # pagelist folder
+            SUCCEED,  # rename share
+        ]
+
+        self._driver.unmanage(
+            self.m_data.fake_share_nfs,
+        )
+
+        mock_execute.assert_has_calls([
+            mock.call(['pagelist', 'folder', pool_path]),
+            mock.call(['folder', 'options', '6541BAFB2E6C57B6',
+                       'share-pool-01', '-e', share_id, unmanage_name]),
+        ])
+
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_unmanage_cifs(self, mock_execute):
+        fake_share = self.m_data.fake_share_cifs
+        share_id = fake_share['share_id']
+        share_name = fake_share['display_name']
+        pool_path = '/LV-1/share-pool-01'
+        unmanage_name = 'manila-unmanage-%s' % share_name
+
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.nas_data.fake_subfolder_data),  # pagelist folder
+            SUCCEED,  # rename share
+        ]
+
+        self._driver.unmanage(
+            self.m_data.fake_share_cifs,
+        )
+
+        mock_execute.assert_has_calls([
+            mock.call(['pagelist', 'folder', pool_path]),
+            mock.call(['folder', 'options', '6541BAFB2E6C57B6',
+                       'share-pool-01', '-e', share_id, unmanage_name]),
+        ])
+
+    @mock.patch.object(infortrend_nas.LOG, 'warning')
+    def test_unmanage_share_not_exist(self, log_warning):
+        self._get_driver(self.fake_conf, True)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.nas_data.fake_subfolder_data))
+
+        self._driver.unmanage(
+            self.m_data.fake_share_for_manage_nfs,
+        )
+
+        self.assertEqual(1, log_warning.call_count)
