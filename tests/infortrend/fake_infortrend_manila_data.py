@@ -315,3 +315,48 @@ class InfortrendManilaTestData(object):
         'is_public': False,
         'source_cgsnapshot_member_id': None
     }
+
+    fake_share_for_manage_cifs = {
+        'share_id': '3a1222d3-c981-490a-9390-4d560ced68eb',
+        'availability_zone': None,
+        'terminated_at': None,
+        'availability_zone_id': None,
+        'updated_at': None,
+        'share_network_id': None,
+        'export_locations': [{
+            'uuid': '0ebd59e4-e65e-4fda-9457-320375efd0de',
+            'deleted': 0,
+            'created_at': 'datetime.datetime(2017, 5, 11, 10, 10, 3)',
+            'updated_at': 'datetime.datetime(2017, 5, 11, 10, 10, 3)',
+            'is_admin_only': False,
+            'share_instance_id': 'd3cfe195-85cf-41e6-be4f-a96f7e7db192',
+            'path': '\\\\172.27.113.209\\test-folder-02',
+            'el_metadata': {},
+            'deleted_at': None,
+            'id': 87
+        }],
+        'share_server_id': None,
+        'snapshot_id': None,
+        'deleted_at': None,
+        'id': 'd156baf7-5422-4c9b-8c78-ee7943d000ec',
+        'size': None,
+        'replica_state': None,
+        'user_id': '4944594433f0405588928a4212964658',
+        'export_location': '\\\\172.27.113.209\\test-folder-02',
+        'display_description': '',
+        'consistency_group_id': None,
+        'project_id': '0e63326c50a246ac81fa1a0c8e003d5b',
+        'launched_at': None,
+        'scheduled_at': 'datetime.datetime(2017, 5, 11, 3, 7, 59)',
+        'status': 'manage_starting',
+        'share_type_id': '23d8c637-0192-47fa-b921-958f22ed772f',
+        'deleted': 'False',
+        'host': 'compute@ift-manila#share-pool-01',
+        'access_rules_status': 'active',
+        'display_name': 'test-manage-02',
+        'name': 'share-d156baf7-5422-4c9b-8c78-ee7943d000ec',
+        'created_at': 'datetime.datetime(2017, 5, 11, 3, 7, 59)',
+        'share_proto': 'CIFS',
+        'is_public': False,
+        'source_cgsnapshot_member_id': None
+    }

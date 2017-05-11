@@ -174,7 +174,12 @@ class InfortrendNASTestData(object):
         'used': '0',
         'name': fake_share_id[1],
         'type': 'subfolder',
-        'id': '69',
+        'id': '69'}, {
+        'quota': '94091997184',
+        'used': '0',
+        'type': 'subfolder',
+        'id': '70',
+        "name": 'test-folder-02'
     }]
 
     def fake_get_share_status_nfs(self, status=False):
@@ -290,7 +295,22 @@ class InfortrendNASTestData(object):
         'subshare': False,
         'type': 'subfolder',
         'empty': True,
-        'name': fake_share_id[1],
+        'name': fake_share_id[1]}, {
+        'size': '6',
+        'index': '777',
+        'description': '',
+        'encryption': '',
+        'isEnd': False,
+        'share': False,
+        'volumeId': '6541BAFB2E6C57B6',
+        'quota': '94091997184',
+        'modifyTime': '2017-04-28 15:44',
+        'owner': 'A',
+        'path': '/LV-1/share-pool-01/test-folder-02',
+        'subshare': False,
+        'type': 'subfolder',
+        'empty': True,
+        'name': 'test-folder-02'
     }]
 
     fake_cifs_user_list = [{

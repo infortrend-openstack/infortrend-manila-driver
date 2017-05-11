@@ -60,7 +60,7 @@ def retry_cli(func):
 
 
 def bi_to_gi(bi_size):
-    return float(bi_size / units.Gi)
+    return bi_size / units.Gi
 
 
 class InfortrendNAS(object):
@@ -254,7 +254,7 @@ class InfortrendNAS(object):
         return pools
 
     def _get_pool_quota_used(self, pool_name):
-        pool_quota_used = 0
+        pool_quota_used = 0.0
         pool_id = self.pool_dict[pool_name]['id']
 
         command_line = ['fquota', 'status', pool_id,
@@ -319,14 +319,14 @@ class InfortrendNAS(object):
         return
 
     def _get_share_size(self, pool_id, pool_name, share_name):
-        share_size = None
+        share_size = 0.0
         command_line = ['fquota', 'status', pool_id,
                         pool_name, '-t', 'folder']
         rc, quota_status = self._execute(command_line)
 
         for share_quota in quota_status:
             if share_quota['name'] == share_name:
-                share_size = round(bi_to_gi(int(share_quota['quota'])), 2)
+                share_size = round(bi_to_gi(float(share_quota['quota'])), 2)
                 break
 
         return share_size
