@@ -68,6 +68,21 @@ class InfortrendNASDriverTestCase(test.TestCase):
                 '1': self.nas_data.fake_channel_ip[1],
             }
 
+    def test_no_nas_ip_setting(self):
+        self.fake_conf.set_default('infortrend_nas_ip', None)
+        self.assertRaises(
+            exception.InvalidParameterValue,
+            self._get_driver,
+            self.fake_conf)
+
+    def test_no_login_ssh_key_and_pass(self):
+        self.fake_conf.set_default('infortrend_nas_password', None)
+        self.fake_conf.set_default('infortrend_nas_ssh_key', None)
+        self.assertRaises(
+            exception.InvalidParameterValue,
+            self._get_driver,
+            self.fake_conf)
+
     def test_parser_with_service_status(self):
         expect_service_status = [{
             'A': {
@@ -118,7 +133,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
             'directory': '/LV-1/share-pool-02',
             'volumeId': '147A8FB67DA39914',
             'mounted': True,
-            'size': '107321753600'}]
+            'size': '107321753600'
+        }]
 
         self._get_driver(self.fake_conf)
         rc, folder_status = self._iftnas._parser(
