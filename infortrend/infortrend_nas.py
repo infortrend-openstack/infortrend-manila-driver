@@ -319,7 +319,7 @@ class InfortrendNAS(object):
         return
 
     def _get_share_size(self, pool_id, pool_name, share_name):
-        share_size = 0.0
+        share_size = None
         command_line = ['fquota', 'status', pool_id,
                         pool_name, '-t', 'folder']
         rc, quota_status = self._execute(command_line)

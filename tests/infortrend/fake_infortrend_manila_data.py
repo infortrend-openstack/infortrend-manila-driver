@@ -316,6 +316,52 @@ class InfortrendManilaTestData(object):
         'source_cgsnapshot_member_id': None
     }
 
+    def _get_fake_share_for_manage(self, location=''):
+        return {
+            'share_id': '419ab73c-c0fc-4e73-b56a-70756e0b6d27',
+            'availability_zone': None,
+            'terminated_at': None,
+            'availability_zone_id': None,
+            'updated_at': None,
+            'share_network_id': None,
+            'export_locations': [{
+                'uuid': '0ebd59e4-e65e-4fda-9457-320375efd0be',
+                'deleted': 0,
+                'created_at': 'datetime.datetime(2017, 5, 10, 10, 0, 3)',
+                'updated_at': 'datetime.datetime(2017, 5, 10, 10, 0, 3)',
+                'is_admin_only': False,
+                'share_instance_id': 'd3cfe195-85cf-41e6-be4f-a96f7e7db192',
+                'path': location,
+                'el_metadata': {},
+                'deleted_at': None,
+                'id': 83
+            }],
+            'share_server_id': None,
+            'snapshot_id': None,
+            'deleted_at': None,
+            'id': '615ac1ed-e808-40b5-8d7b-87018c6f66eb',
+            'size': None,
+            'replica_state': None,
+            'user_id': '4944594433f0405588928a4212964658',
+            'export_location': location,
+            'display_description': '',
+            'consistency_group_id': None,
+            'project_id': '0e63326c50a246ac81fa1a0c8e003d5b',
+            'launched_at': None,
+            'scheduled_at': 'datetime.datetime(2017, 5, 10, 9, 22, 5)',
+            'status': 'manage_starting',
+            'share_type_id': '23d8c637-0192-47fa-b921-958f22ed772f',
+            'deleted': 'False',
+            'host': 'compute@ift-manila#share-pool-01',
+            'access_rules_status': 'active',
+            'display_name': 'test-manage',
+            'name': 'share-615ac1ed-e808-40b5-8d7b-87018c6f66eb',
+            'created_at': 'datetime.datetime(2017, 5, 10, 9, 22, 5)',
+            'share_proto': 'NFS',
+            'is_public': False,
+            'source_cgsnapshot_member_id': None
+        }
+
     fake_share_for_manage_cifs = {
         'share_id': '3a1222d3-c981-490a-9390-4d560ced68eb',
         'availability_zone': None,

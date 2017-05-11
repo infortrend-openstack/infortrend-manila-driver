@@ -182,6 +182,8 @@ class InfortrendNASTestData(object):
         "name": 'test-folder-02'
     }]
 
+    fake_fquota_status_with_no_settings = []
+
     def fake_get_share_status_nfs(self, status=False):
         fake_share_status_nfs = [{
             'ftp': False,

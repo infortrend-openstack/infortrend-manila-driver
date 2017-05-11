@@ -672,3 +672,48 @@ class InfortrendNASDriverTestCase(test.TestCase):
             mock.call(['ifconfig', 'inet', 'show']),
         ])
 
+    def test_manage_existing_with_no_location(self):
+        fake_share = self.m_data._get_fake_share_for_manage('')
+        self._get_driver(self.fake_conf, True)
+
+        self.assertRaises(
+            exception.InfortrendNASException,
+            self._driver.manage_existing,
+            fake_share, {})
+
+    def test_manage_existing_with_wrong_ip(self):
+        fake_share = self.m_data._get_fake_share_for_manage(
+            '172.27.1.1:/LV-1/share-pool-01/test-folder')
+        self._get_driver(self.fake_conf, True)
+
+        self.assertRaises(
+            exception.InfortrendNASException,
+            self._driver.manage_existing,
+            fake_share, {})
+
+    def test_manage_existing_with_wrong_share_name(self):
+        fake_share = self.m_data._get_fake_share_for_manage(
+            '172.27.112.223:/LV-1/share-pool-01/some-folder')
+        self._get_driver(self.fake_conf, True)
+        self._iftnas._execute = mock.Mock(
+            return_value=(0, self.nas_data.fake_subfolder_data))
+
+        self.assertRaises(
+            exception.InfortrendNASException,
+            self._driver.manage_existing,
+            fake_share, {})
+
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_manage_existing_with_no_size_setting(self, mock_execute):
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.nas_data.fake_subfolder_data),  # pagelist folder
+            (0, self.nas_data.fake_get_share_status_nfs()),  # check proto
+            SUCCEED,  # enable nfs
+            (0, self.nas_data.fake_fquota_status_with_no_settings),
+        ]
+        self.assertRaises(
+            exception.InfortrendNASException,
+            self._driver.manage_existing,
+            self.m_data.fake_share_for_manage_nfs,
+            {})
