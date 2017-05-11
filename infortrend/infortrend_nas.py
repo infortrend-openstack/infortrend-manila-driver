@@ -60,7 +60,7 @@ def retry_cli(func):
 
 
 def bi_to_gi(bi_size):
-    return bi_size / units.Gi
+    return float(bi_size / units.Gi)
 
 
 class InfortrendNAS(object):

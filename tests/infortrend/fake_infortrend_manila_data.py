@@ -271,7 +271,7 @@ class InfortrendManilaTestData(object):
         'id': fake_id[1]
     }]
 
-    fake_share_for_manage = {
+    fake_share_for_manage_nfs = {
         'share_id': '419ab73c-c0fc-4e73-b56a-70756e0b6d27',
         'availability_zone': None,
         'terminated_at': None,

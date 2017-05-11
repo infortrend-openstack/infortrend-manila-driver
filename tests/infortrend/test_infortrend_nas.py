@@ -585,7 +585,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_manage_existing_nfs(self, mock_execute):
-        share_id = self.m_data.fake_share_for_manage['share_id']
+        share_id = self.m_data.fake_share_for_manage_nfs['share_id']
         pool_path = '/LV-1/share-pool-01'
         origin_share_path = pool_path + '/' + 'test-folder'
         export_share_path = pool_path + '/' + share_id
@@ -607,7 +607,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         ]
 
         result = self._driver.manage_existing(
-            self.m_data.fake_share_for_manage,
+            self.m_data.fake_share_for_manage_nfs,
             {}
         )
 
@@ -622,3 +622,4 @@ class InfortrendNASDriverTestCase(test.TestCase):
                        'share-pool-01', '-e', 'test-folder', share_id]),
             mock.call(['ifconfig', 'inet', 'show']),
         ])
+
