@@ -56,7 +56,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             configuration=fake_conf)
         self._iftnas = self._driver.ift_nas
         self.pool_id = ['6541BAFB2E6C57B6']
-        self.pool_path = ['/LV-1/share-pool-01']
+        self.pool_path = ['/LV-1/share-pool-01/']
 
         if init_dict:
             self._iftnas.pool_dict = {
@@ -122,7 +122,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             'owner': 'A',
             'readOnly': False,
             'modifyTime': '2017-04-27 16:16',
-            'directory': self.pool_path[0],
+            'directory': self.pool_path[0][:-1],
             'volumeId': self.pool_id[0],
             'mounted': True,
             'size': '321965260800'}, {
@@ -254,7 +254,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         self.assertEqual(expect_locations, locations)
         mock_execute.assert_any_call(
-            ['share', '/LV-1/share-pool-01/' + fake_share_id, 'nfs', 'on'])
+            ['share', self.pool_path[0] + fake_share_id, 'nfs', 'on'])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_create_share_cifs(self, mock_execute):
@@ -280,7 +280,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         self.assertEqual(expect_locations, locations)
         mock_execute.assert_any_call(
-            ['share', '/LV-1/share-pool-01/' + fake_share_id,
+            ['share', self.pool_path[0] + fake_share_id,
              'cifs', 'on', '-n', fake_display_name])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
@@ -330,7 +330,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_nfs_add_rule(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
-        share_path = '/LV-1/share-pool-01/' + share_id
+        share_path = self.pool_path[0] + share_id
         mock_execute.side_effect = [
             SUCCEED,
         ]
@@ -363,7 +363,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_nfs_delete_rule(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
-        share_path = '/LV-1/share-pool-01/' + share_id
+        share_path = self.pool_path[0] + share_id
         mock_execute.side_effect = [
             SUCCEED,
         ]
@@ -384,7 +384,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_cifs_add_user_rw(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_cifs['share_id']
-        share_path = '/LV-1/share-pool-01/' + share_id
+        share_path = self.pool_path[0] + share_id
         mock_execute.side_effect = [
             (0, self.nas_data.fake_cifs_user_list),  # check user exist
             SUCCEED,
@@ -408,7 +408,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_cifs_add_user_ro(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_cifs['share_id']
-        share_path = '/LV-1/share-pool-01/' + share_id
+        share_path = self.pool_path[0] + share_id
         mock_execute.side_effect = [
             (0, self.nas_data.fake_cifs_user_list),  # check user exist
             SUCCEED,
@@ -448,7 +448,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_cifs_delete_rule(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_cifs['share_id']
-        share_path = '/LV-1/share-pool-01/' + share_id
+        share_path = self.pool_path[0] + share_id
         mock_execute.side_effect = [
             (0, self.nas_data.fake_cifs_user_list),  # check user exist
             SUCCEED,
@@ -484,7 +484,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_clear_access_nfs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
-        share_path = '/LV-1/share-pool-01/' + share_id
+        share_path = self.pool_path[0] + share_id
         mock_execute.side_effect = [
             (0, self.nas_data.fake_share_status_nfs_with_rules),
             SUCCEED,  # clear access
@@ -517,7 +517,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_clear_access_cifs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_cifs['share_id']
-        share_path = '/LV-1/share-pool-01/' + share_id
+        share_path = self.pool_path[0] + share_id
         mock_execute.side_effect = [
             (0, self.nas_data.fake_share_status_cifs_with_rules),
             SUCCEED,  # clear user01
@@ -568,7 +568,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_ensure_share_nfs(self):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
-        share_path = '/LV-1/share-pool-01/' + share_id
+        share_path = self.pool_path[0] + share_id
         expect_locations = [
             self.nas_data.fake_channel_ip[0] + ':' + share_path,
             self.nas_data.fake_channel_ip[1] + ':' + share_path,
@@ -622,8 +622,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_manage_existing_nfs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_for_manage_nfs['share_id']
-        origin_share_path = self.pool_path[0] + '/' + 'test-folder'
-        export_share_path = self.pool_path[0] + '/' + share_id
+        origin_share_path = self.pool_path[0] + 'test-folder'
+        export_share_path = self.pool_path[0] + share_id
         expect_result = {
             'size': 20.0,
             'export_locations': [
@@ -662,7 +662,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_for_manage_cifs['share_id']
         share_name = self.m_data.fake_share_for_manage_cifs['display_name']
-        origin_share_path = self.pool_path[0] + '/' + 'test-folder-02'
+        origin_share_path = self.pool_path[0] + 'test-folder-02'
         expect_result = {
             'size': 87.63,
             'export_locations': [

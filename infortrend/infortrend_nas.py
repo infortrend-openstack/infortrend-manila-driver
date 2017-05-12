@@ -200,12 +200,12 @@ class InfortrendNAS(object):
         pool_list = self.pool_dict.keys()
         command_line = ['folder', 'status']
         rc, pool_data = self._execute(command_line)
-        for pool_info in pool_data:
-            pool_name = self._extract_pool_name(pool_info)
+        for pool in pool_data:
+            pool_name = self._extract_pool_name(pool)
             if pool_name in self.pool_dict.keys():
                 pool_list.remove(pool_name)
-                self.pool_dict[pool_name]['id'] = pool_info['volumeId']
-                self.pool_dict[pool_name]['path'] = pool_info['directory']
+                self.pool_dict[pool_name]['id'] = pool['volumeId']
+                self.pool_dict[pool_name]['path'] = pool['directory'] + '/'
             if len(pool_list) == 0:
                 break
 
@@ -271,7 +271,7 @@ class InfortrendNAS(object):
         pool_id = self.pool_dict[pool_name]['id']
         pool_path = self.pool_dict[pool_name]['path']
         share_proto = share['share_proto'].lower()
-        share_path = pool_path + '/' + share['share_id']
+        share_path = pool_path + share['share_id']
         display_name = share['display_name']
 
         command_line = ['folder', 'options', pool_id,
@@ -298,7 +298,7 @@ class InfortrendNAS(object):
         for ch in sorted(self.channel_dict.keys()):
             ip = self.channel_dict[ch]
             if share_proto == 'nfs':
-                location.append(ip + ':%(pool_path)s/%(id)s' % location_data)
+                location.append(ip + ':%(pool_path)s%(id)s' % location_data)
             elif share_proto == 'cifs':
                 location.append('\\\\' + ip + '\\%(name)s' % location_data)
             else:
@@ -371,7 +371,7 @@ class InfortrendNAS(object):
     def _clear_access(self, share, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_path = self.pool_dict[pool_name]['path']
-        share_path = pool_path + '/' + share['share_id']
+        share_path = pool_path + share['share_id']
         share_proto = share['share_proto'].lower()
 
         if share_proto == 'nfs':
@@ -397,7 +397,7 @@ class InfortrendNAS(object):
     def allow_access(self, share, access, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_path = self.pool_dict[pool_name]['path']
-        share_path = pool_path + '/' + share['share_id']
+        share_path = pool_path + share['share_id']
         share_proto = share['share_proto'].lower()
         access_type = access['access_type']
         access_level = access['access_level']
@@ -474,7 +474,7 @@ class InfortrendNAS(object):
     def deny_access(self, share, access, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_path = self.pool_dict[pool_name]['path']
-        share_path = pool_path + '/' + share['share_id']
+        share_path = pool_path + share['share_id']
         share_proto = share['share_proto'].lower()
         access_type = access['access_type']
         access_to = access['access_to']
@@ -554,7 +554,7 @@ class InfortrendNAS(object):
             LOG.error(msg)
             raise exception.InfortrendNASException(err=msg)
 
-        share_path = pool_path + '/' + share_name
+        share_path = pool_path + share_name
         self._ensure_protocol_on(share_path, share_proto, display_name)
         share_size = self._get_share_size(pool_id, pool_name, share_name)
 
