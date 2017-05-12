@@ -282,8 +282,8 @@ class InfortrendNAS(object):
             pool_id, pool_name, share['share_id'], share['size'])
         self._ensure_protocol_on(share_path, share_proto, display_name)
 
-        LOG.info('Create Share [%(share_id)s] completed.', {
-            'share_id': share['share_id']})
+        LOG.info('Create Share [%(share)s] completed.', {
+            'share': share['display_name']})
 
         return self._export_location(share, share_proto, pool_path)
 
@@ -343,8 +343,8 @@ class InfortrendNAS(object):
             LOG.warning('Share [%(share_id)s] is already deleted.', {
                 'share_id': share['share_id']})
 
-        LOG.info('Delete Share [%(share_id)s] completed.', {
-            'share_id': share['share_id']})
+        LOG.info('Delete Share [%(share)s] completed.', {
+            'share': share['display_name']})
 
     def _check_share_exist(self, pool_name, share_name):
         share_exist = False
@@ -431,10 +431,11 @@ class InfortrendNAS(object):
                             '-u', access_to, '-a', access_level]
             self._execute(command_line)
 
-        LOG.info('Share [%(share_id)s] access to [%(access_to)s] '
-                 'completed for protocol [%(share_proto)s]', {
-                     'share_id': share['share_id'],
+        LOG.info('Share [%(share)s] access to [%(access_to)s] '
+                 'level [%(level)s] protocol [%(share_proto)s] completed.', {
+                     'share': share['display_name'],
                      'access_to': access_to,
+                     'level': access_level,
                      'share_proto': share_proto})
 
     def _ensure_protocol_on(self, share_path, share_proto, cifs_name):
@@ -498,9 +499,9 @@ class InfortrendNAS(object):
                             '-u', access_to, '-a', 'd']
             self._execute(command_line)
 
-        LOG.info('Share [%(share_id)s] deny access [%(access_to)s] '
-                 'completed for protocol [%(share_proto)s]', {
-                     'share_id': share['share_id'],
+        LOG.info('Share [%(share)s] deny access [%(access_to)s] '
+                 'protocol [%(share_proto)s] completed.', {
+                     'share': share['display_name'],
                      'access_to': access_to,
                      'share_proto': share_proto})
 
@@ -524,9 +525,9 @@ class InfortrendNAS(object):
         pool_id = self.pool_dict[pool_name]['id']
         self._set_share_size(pool_id, pool_name, share['share_id'], new_size)
 
-        LOG.info('Successfully Extend Share [%(share_id)s] '
+        LOG.info('Successfully Extend Share [%(share)s] '
                  'to size [%(new_size)s G].', {
-                     'share_id': share['share_id'],
+                     'share': share['display_name'],
                      'new_size': new_size})
 
     def manage_existing(self, share, driver_options):
