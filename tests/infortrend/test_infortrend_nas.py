@@ -55,12 +55,14 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self._driver = driver.InfortrendNASDriver(
             configuration=fake_conf)
         self._iftnas = self._driver.ift_nas
+        self.pool_id = ['6541BAFB2E6C57B6']
+        self.pool_path = ['/LV-1/share-pool-01']
 
         if init_dict:
             self._iftnas.pool_dict = {
                 'share-pool-01': {
-                    'id': '6541BAFB2E6C57B6',
-                    'path': '/LV-1/share-pool-01',
+                    'id': self.pool_id[0],
+                    'path': self.pool_path[0],
                 }
             }
             self._iftnas.channel_dict = {
@@ -116,8 +118,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
             'owner': 'A',
             'readOnly': False,
             'modifyTime': '2017-04-27 16:16',
-            'directory': '/LV-1/share-pool-01',
-            'volumeId': '6541BAFB2E6C57B6',
+            'directory': self.pool_path[0],
+            'volumeId': self.pool_id[0],
             'mounted': True,
             'size': '321965260800'}, {
             'utility': '1.00',
@@ -187,8 +189,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_check_pools_setup(self):
         expect_pool_dict = {
             'share-pool-01': {
-                'id': '6541BAFB2E6C57B6',
-                'path': '/LV-1/share-pool-01',
+                'id': self.pool_id[0],
+                'path': self.pool_path[0],
             }
         }
         self._get_driver(self.fake_conf)
@@ -218,7 +220,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         pool_quota = self._iftnas._get_pool_quota_used('share-pool-01')
 
         mock_execute.assert_called_with(
-            ['fquota', 'status', '6541BAFB2E6C57B6',
+            ['fquota', 'status', self.pool_id[0],
              'share-pool-01', '-t', 'folder'])
         self.assertEqual(201466179584, pool_quota)
 
@@ -288,7 +290,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             self._ctxt, self.m_data.fake_share_nfs)
 
         mock_execute.assert_any_call(
-            ['folder', 'options', '6541BAFB2E6C57B6', 'share-pool-01',
+            ['folder', 'options', self.pool_id[0], 'share-pool-01',
              '-d', self.m_data.fake_share_nfs['share_id']])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
@@ -303,7 +305,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             self._ctxt, self.m_data.fake_share_cifs)
 
         mock_execute.assert_any_call(
-            ['folder', 'options', '6541BAFB2E6C57B6', 'share-pool-01',
+            ['folder', 'options', self.pool_id[0], 'share-pool-01',
              '-d', self.m_data.fake_share_cifs['share_id']])
 
     @mock.patch.object(infortrend_nas.LOG, 'warning')
@@ -596,7 +598,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self._driver.extend_share(self.m_data.fake_share_nfs, 100)
 
         self._iftnas._execute.assert_called_once_with(
-            ['fquota', 'create', '6541BAFB2E6C57B6', 'share-pool-01',
+            ['fquota', 'create', self.pool_id[0], 'share-pool-01',
              share_id, '100G', '-t', 'folder'])
 
     def test_get_share_size(self):
@@ -610,9 +612,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_manage_existing_nfs(self, mock_execute):
         share_id = self.m_data.fake_share_for_manage_nfs['share_id']
-        pool_path = '/LV-1/share-pool-01'
-        origin_share_path = pool_path + '/' + 'test-folder'
-        export_share_path = pool_path + '/' + share_id
+        origin_share_path = self.pool_path[0] + '/' + 'test-folder'
+        export_share_path = self.pool_path[0] + '/' + share_id
         expect_result = {
             'size': 20.0,
             'export_locations': [
@@ -637,12 +638,12 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         self.assertEqual(expect_result, result)
         mock_execute.assert_has_calls([
-            mock.call(['pagelist', 'folder', pool_path]),
+            mock.call(['pagelist', 'folder', self.pool_path[0]]),
             mock.call(['share', 'status', '-f', origin_share_path]),
             mock.call(['share', origin_share_path, 'nfs', 'on']),
-            mock.call(['fquota', 'status', '6541BAFB2E6C57B6',
+            mock.call(['fquota', 'status', self.pool_id[0],
                        'share-pool-01', '-t', 'folder']),
-            mock.call(['folder', 'options', '6541BAFB2E6C57B6',
+            mock.call(['folder', 'options', self.pool_id[0],
                        'share-pool-01', '-e', 'test-folder', share_id]),
             mock.call(['ifconfig', 'inet', 'show']),
         ])
@@ -651,8 +652,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_manage_existing_cifs(self, mock_execute):
         share_id = self.m_data.fake_share_for_manage_cifs['share_id']
         share_name = self.m_data.fake_share_for_manage_cifs['display_name']
-        pool_path = '/LV-1/share-pool-01'
-        origin_share_path = pool_path + '/' + 'test-folder-02'
+        origin_share_path = self.pool_path[0] + '/' + 'test-folder-02'
         expect_result = {
             'size': 87.63,
             'export_locations': [
@@ -677,13 +677,13 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         self.assertEqual(expect_result, result)
         mock_execute.assert_has_calls([
-            mock.call(['pagelist', 'folder', pool_path]),
+            mock.call(['pagelist', 'folder', self.pool_path[0]]),
             mock.call(['share', 'status', '-f', origin_share_path]),
             mock.call(['share', origin_share_path, 'cifs', 'on',
                        '-n', share_name]),
-            mock.call(['fquota', 'status', '6541BAFB2E6C57B6',
+            mock.call(['fquota', 'status', self.pool_id[0],
                        'share-pool-01', '-t', 'folder']),
-            mock.call(['folder', 'options', '6541BAFB2E6C57B6',
+            mock.call(['folder', 'options', self.pool_id[0],
                        'share-pool-01', '-e', 'test-folder-02', share_id]),
             mock.call(['ifconfig', 'inet', 'show']),
         ])
@@ -739,7 +739,6 @@ class InfortrendNASDriverTestCase(test.TestCase):
         fake_share = self.m_data.fake_share_nfs
         share_id = fake_share['share_id']
         share_name = fake_share['display_name']
-        pool_path = '/LV-1/share-pool-01'
         unmanage_name = 'manila-unmanage-%s' % share_name
 
         self._get_driver(self.fake_conf, True)
@@ -753,8 +752,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
         )
 
         mock_execute.assert_has_calls([
-            mock.call(['pagelist', 'folder', pool_path]),
-            mock.call(['folder', 'options', '6541BAFB2E6C57B6',
+            mock.call(['pagelist', 'folder', self.pool_path[0]]),
+            mock.call(['folder', 'options', self.pool_id[0],
                        'share-pool-01', '-e', share_id, unmanage_name]),
         ])
 
@@ -763,7 +762,6 @@ class InfortrendNASDriverTestCase(test.TestCase):
         fake_share = self.m_data.fake_share_cifs
         share_id = fake_share['share_id']
         share_name = fake_share['display_name']
-        pool_path = '/LV-1/share-pool-01'
         unmanage_name = 'manila-unmanage-%s' % share_name
 
         self._get_driver(self.fake_conf, True)
@@ -777,8 +775,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
         )
 
         mock_execute.assert_has_calls([
-            mock.call(['pagelist', 'folder', pool_path]),
-            mock.call(['folder', 'options', '6541BAFB2E6C57B6',
+            mock.call(['pagelist', 'folder', self.pool_path[0]]),
+            mock.call(['folder', 'options', self.pool_id[0],
                        'share-pool-01', '-e', share_id, unmanage_name]),
         ])
 
