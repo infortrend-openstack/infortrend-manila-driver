@@ -609,6 +609,38 @@ class InfortrendNASDriverTestCase(test.TestCase):
             ['fquota', 'create', self.pool_id[0], 'share-pool-01',
              share_id, '100G', '-t', 'folder'])
 
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_shrink_share(self, mock_execute):
+        self._get_driver(self.fake_conf, True)
+        share_id = self.m_data.fake_share_nfs['share_id']
+        mock_execute.side_effect = [
+            (0, self.nas_data.fake_fquota_status),  # check used
+            SUCCEED,
+        ]
+
+        self._driver.shrink_share(self.m_data.fake_share_nfs, 10)
+
+        mock_execute.assert_has_calls([
+            mock.call(['fquota', 'status', self.pool_id[0],
+                       'share-pool-01', '-t', 'folder']),
+            mock.call(['fquota', 'create', self.pool_id[0],
+                       'share-pool-01', share_id, '10G',
+                       '-t', 'folder'])
+        ])
+
+    @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
+    def test_shrink_share_smaller_than_used_size(self, mock_execute):
+        self._get_driver(self.fake_conf, True)
+        mock_execute.side_effect = [
+            (0, self.nas_data.fake_fquota_status),  # check used
+        ]
+
+        self.assertRaises(
+            exception.ShareShrinkingPossibleDataLoss,
+            self._driver.shrink_share,
+            self.m_data.fake_share_cifs,
+            10)
+
     def test_get_share_size(self):
         self._get_driver(self.fake_conf, True)
         self._iftnas._execute = mock.Mock(

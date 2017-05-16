@@ -171,7 +171,7 @@ class InfortrendNASTestData(object):
         'type': 'subfolder',
         'id': '805306752'}, {
         'quota': '53687091200',
-        'used': '0',
+        'used': '21474836480',
         'name': fake_share_id[1],
         'type': 'subfolder',
         'id': '69'}, {
