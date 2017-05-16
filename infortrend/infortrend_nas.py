@@ -530,6 +530,29 @@ class InfortrendNAS(object):
                      'share': share['display_name'],
                      'new_size': new_size})
 
+    def shrink_share(self, share, new_size, share_server=None):
+        pool_name = share_utils.extract_host(share['host'], level='pool')
+        pool_id = self.pool_dict[pool_name]['id']
+
+        command_line = ['fquota', 'status', pool_id,
+                        pool_name, '-t', 'folder']
+        rc, quota_status = self._execute(command_line)
+
+        for share_quota in quota_status:
+            if share_quota['name'] == share['share_id']:
+                used_space = round(bi_to_gi(float(share_quota['used'])), 2)
+
+        if new_size < used_space:
+            raise exception.ShareShrinkingPossibleDataLoss(
+                share_id=share['id'])
+
+        self._set_share_size(pool_id, pool_name, share['share_id'], new_size)
+
+        LOG.info('Successfully Shrink Share [%(share)s] '
+                 'to size [%(new_size)s G].', {
+                     'share': share['display_name'],
+                     'new_size': new_size})
+
     def manage_existing(self, share, driver_options):
         share_proto = share['share_proto'].lower()
         pool_name = share_utils.extract_host(share['host'], level='pool')

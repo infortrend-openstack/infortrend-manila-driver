@@ -287,3 +287,18 @@ class InfortrendNASDriver(driver.ShareDriver):
         :param share_server: Optional -- Share server model
         """
         return self.ift_nas.extend_share(share, new_size, share_server)
+
+    def shrink_share(self, share, new_size, share_server=None):
+        """Shrinks size of existing share.
+
+        If consumed space on share larger than new_size driver should raise
+        ShareShrinkingPossibleDataLoss exception:
+        raise ShareShrinkingPossibleDataLoss(share_id=share['id'])
+
+        :param share: Share model
+        :param new_size: New size of share (new_size < share['size'])
+        :param share_server: Optional -- Share server model
+
+        :raises ShareShrinkingPossibleDataLoss, NotImplementedError
+        """
+        return self.ift_nas.shrink_share(share, new_size, share_server)
