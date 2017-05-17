@@ -314,7 +314,7 @@ class InfortrendNAS(object):
 
         LOG.debug('Set Share [%(share_name)s] '
                   'Size [%(share_size)s G] completed.', {
-                      'share_id': share_name,
+                      'share_name': share_name,
                       'share_size': share_size})
         return
 
@@ -442,7 +442,7 @@ class InfortrendNAS(object):
         if not self._check_proto_enabled(share_path, share_proto):
             command_line = ['share', share_path, share_proto, 'on']
             if share_proto == 'cifs':
-                command_line.extend(['-n', cifs_name])
+                command_line.extend(['-n', cifs_name[:32]])
             self._execute(command_line)
 
     def _check_proto_enabled(self, share_path, share_proto):
