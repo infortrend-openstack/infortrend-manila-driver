@@ -442,6 +442,10 @@ class InfortrendNAS(object):
         if not self._check_proto_enabled(share_path, share_proto):
             command_line = ['share', share_path, share_proto, 'on']
             if share_proto == 'cifs':
+                if cifs_name.startswith('.') or cifs_name.endswith('.'):
+                    msg = _('CIFS share name can not start or end with a dot.')
+                    LOG.error(msg)
+                    raise exception.InfortrendNASException(err=msg)
                 command_line.extend(['-n', cifs_name[:32]])
             self._execute(command_line)
 
