@@ -781,8 +781,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self._get_driver(self.fake_conf, True)
         fake_share = self.m_data.fake_share_nfs
         share_id = fake_share['share_id']
-        share_name = fake_share['display_name']
-        unmanage_name = 'manila-unmanage-%s' % share_name
+        unmanage_name = fake_share['display_name']
         mock_execute.side_effect = [
             (0, self.nas_data.fake_subfolder_data),  # pagelist folder
             SUCCEED,  # rename share
@@ -803,8 +802,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self._get_driver(self.fake_conf, True)
         fake_share = self.m_data.fake_share_cifs
         share_id = fake_share['share_id']
-        share_name = fake_share['display_name']
-        unmanage_name = 'manila-unmanage-%s' % share_name
+        unmanage_name = fake_share['display_name']
         mock_execute.side_effect = [
             (0, self.nas_data.fake_subfolder_data),  # pagelist folder
             SUCCEED,  # rename share

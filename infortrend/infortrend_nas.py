@@ -65,8 +65,6 @@ def bi_to_gi(bi_size):
 
 class InfortrendNAS(object):
 
-    UNMANAGE_PREFIX = 'manila-unmanage-%s'
-
     def __init__(self, nas_ip, username, password, ssh_key,
                  retries, timeout, pool_dict, channel_dict):
         self.nas_ip = nas_ip
@@ -446,7 +444,7 @@ class InfortrendNAS(object):
                     msg = _('CIFS share name can not start or end with a dot.')
                     LOG.error(msg)
                     raise exception.InfortrendNASException(err=msg)
-                command_line.extend(['-n', cifs_name[:32]])
+                command_line.extend(['-n', cifs_name[:31]])
             self._execute(command_line)
 
     def _check_proto_enabled(self, share_path, share_proto):
@@ -653,7 +651,7 @@ class InfortrendNAS(object):
                 'share_name': share['share_id']})
             return
 
-        unmanage_name = self.UNMANAGE_PREFIX % share['display_name']
+        unmanage_name = share['display_name']
 
         # rename share name
         command_line = ['folder', 'options', pool_id,
