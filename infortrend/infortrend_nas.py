@@ -15,15 +15,15 @@
 
 import json
 
+from oslo_concurrency import processutils
 from oslo_log import log
 from oslo_utils import units
-from oslo_concurrency import processutils
 
 from manila.common import constants
 from manila import exception
 from manila.i18n import _
-from manila import utils as manila_utils
 from manila.share import utils as share_utils
+from manila import utils as manila_utils
 
 LOG = log.getLogger(__name__)
 DEFAULT_RETRY_TIME = 5
@@ -120,9 +120,9 @@ class InfortrendNAS(object):
             rc = pe.exit_code
             out = pe.stdout
             out = out.replace('\n', '\\n')
-            LOG.error(_('Error on execute ssh command. '
-                        'Error code: %(exit_code)d Error msg: %(out)s') % {
-                            'exit_code': rc, 'out': out})
+            LOG.error('Error on execute ssh command. '
+                      'Error code: %(exit_code)d Error msg: %(out)s' % {
+                          'exit_code': rc, 'out': out})
 
         return rc, out
 
@@ -135,7 +135,7 @@ class InfortrendNAS(object):
         if cli_data:
             try:
                 data_dict = json.loads(cli_data)
-            except:
+            except Exception:
                 msg = _('Failed to parse data: '
                         '%(cli_data)s to dictionary.') % {
                             'cli_data': cli_data}
@@ -405,7 +405,7 @@ class InfortrendNAS(object):
 
         msg = self._check_access_legal(share_proto, access_type)
         if msg:
-            raise exception.InvalidShareAccess(reason=_(msg))
+            raise exception.InvalidShareAccess(reason=msg)
 
         if share_proto == 'nfs':
             command_line = ['share', 'options', share_path, 'nfs',
@@ -465,11 +465,11 @@ class InfortrendNAS(object):
     def _check_access_legal(self, share_proto, access_type):
         msg = None
         if share_proto == 'cifs' and access_type != 'user':
-            msg = 'Infortrend CIFS share can only access by USER.'
+            msg = _('Infortrend CIFS share can only access by USER.')
         elif share_proto == 'nfs' and access_type != 'ip':
-            msg = 'Infortrend NFS share can only access by IP.'
+            msg = _('Infortrend NFS share can only access by IP.')
         elif share_proto not in ('nfs', 'cifs'):
-            msg = 'Unsupported protocol [%s].' % share_proto
+            msg = _('Unsupported protocol [%s].') % share_proto
         return msg
 
     def deny_access(self, share, access, share_server=None):

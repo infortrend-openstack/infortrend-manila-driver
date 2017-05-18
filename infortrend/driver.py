@@ -16,10 +16,10 @@
 from oslo_config import cfg
 from oslo_log import log
 
-from manila.share.drivers.infortrend import infortrend_nas
 from manila import exception
 from manila.i18n import _
 from manila.share import driver
+from manila.share.drivers.infortrend import infortrend_nas
 
 LOG = log.getLogger(__name__)
 
