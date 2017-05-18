@@ -397,7 +397,7 @@ class InfortrendNAS(object):
         share_path = pool_path + share['share_id']
         share_proto = share['share_proto'].lower()
         access_type = access['access_type']
-        access_level = access['access_level']
+        access_level = access['access_level'] or constants.ACCESS_LEVEL_RW
         access_to = access['access_to']
 
         msg = self._check_access_legal(share_proto, access_type)
@@ -556,10 +556,7 @@ class InfortrendNAS(object):
         pool_id = self.pool_dict[pool_name]['id']
         pool_path = self.pool_dict[pool_name]['path']
         input_location = share['export_locations'][0]['path']
-        display_name = share['display_name']
-
-        if not display_name:
-            display_name = share['share_id'][:31]
+        display_name = share['display_name'] or share['share_id'][:31]
 
         ch_ip, share_name = self._parse_location(input_location, share_proto)
 
