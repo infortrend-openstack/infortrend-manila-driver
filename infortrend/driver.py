@@ -38,7 +38,9 @@ infortrend_nas_opts = [
                'if infortrend_nas_ssh_key is set.'),
     cfg.StrOpt('infortrend_nas_ssh_key',
                default=None,
-               help='Infortrend nas ssh key.'),
+               help='Infortrend nas ssh key. '
+               'This is not necessary '
+               'if infortrend_nas_password is set.'),
     cfg.StrOpt('infortrend_share_pools',
                default=None,
                help='Infortrend nas pool name list. '
