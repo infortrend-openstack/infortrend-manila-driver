@@ -270,7 +270,6 @@ class InfortrendNAS(object):
         pool_path = self.pool_dict[pool_name]['path']
         share_proto = share['share_proto'].lower()
         share_path = pool_path + share['share_id']
-        display_name = share['display_name']
 
         command_line = ['folder', 'options', pool_id,
                         pool_name, '-c', share['share_id']]
@@ -278,7 +277,8 @@ class InfortrendNAS(object):
 
         self._set_share_size(
             pool_id, pool_name, share['share_id'], share['size'])
-        self._ensure_protocol_on(share_path, share_proto, display_name)
+        self._ensure_protocol_on(
+            share_path, share_proto, share['share_id'][:31])
 
         LOG.info('Create Share [%(share)s] completed.', {
             'share': share['share_id']})
@@ -290,7 +290,7 @@ class InfortrendNAS(object):
         location_data = {
             'pool_path': pool_path,
             'id': share['share_id'],
-            'name': share['display_name'],
+            'cifs': share['share_id'][:31],
         }
         self._check_channels_status()
         for ch in sorted(self.channel_dict.keys()):
@@ -298,7 +298,7 @@ class InfortrendNAS(object):
             if share_proto == 'nfs':
                 location.append(ip + ':%(pool_path)s%(id)s' % location_data)
             elif share_proto == 'cifs':
-                location.append('\\\\' + ip + '\\%(name)s' % location_data)
+                location.append('\\\\' + ip + '\\%(cifs)s' % location_data)
             else:
                 msg = _('Unsupported protocol: [%s].') % share_proto
                 raise exception.InvalidInput(msg)
@@ -439,11 +439,7 @@ class InfortrendNAS(object):
         if not self._check_proto_enabled(share_path, share_proto):
             command_line = ['share', share_path, share_proto, 'on']
             if share_proto == 'cifs':
-                if cifs_name.startswith('.') or cifs_name.endswith('.'):
-                    msg = _('CIFS share name can not start or end with a dot.')
-                    LOG.error(msg)
-                    raise exception.InfortrendNASException(err=msg)
-                command_line.extend(['-n', cifs_name[:31]])
+                command_line.extend(['-n', cifs_name])
             self._execute(command_line)
 
     def _check_proto_enabled(self, share_path, share_proto):
@@ -562,6 +558,9 @@ class InfortrendNAS(object):
         input_location = share['export_locations'][0]['path']
         display_name = share['display_name']
 
+        if not display_name:
+            display_name = share['share_id'][:31]
+
         ch_ip, share_name = self._parse_location(input_location, share_proto)
 
         if not self._check_channel_ip(ch_ip):
@@ -580,7 +579,8 @@ class InfortrendNAS(object):
             raise exception.InfortrendNASException(err=msg)
 
         share_path = pool_path + share_name
-        self._ensure_protocol_on(share_path, share_proto, display_name)
+        self._ensure_protocol_on(
+            share_path, share_proto, share['share_id'][:31])
         share_size = self._get_share_size(pool_id, pool_name, share_name)
 
         if not share_size:
