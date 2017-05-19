@@ -35,14 +35,13 @@ def bi_to_gi(bi_size):
 class InfortrendNAS(object):
 
     def __init__(self, nas_ip, username, password, ssh_key,
-                 retries, timeout, pool_dict, channel_dict):
+                 timeout, pool_dict, channel_dict):
         self.nas_ip = nas_ip
         self.port = 22
         self.username = username
         self.password = password
         self.ssh_key = ssh_key
-        self.cli_retry_time = retries
-        self.cli_timeout = timeout
+        self.ssh_timeout = timeout
         self.pool_dict = pool_dict
         self.channel_dict = channel_dict
         self.command = ""
@@ -60,7 +59,7 @@ class InfortrendNAS(object):
 
         return self._parser(cli_out)
 
-    @manila_utils.retry(exception=exception.ProcessExecutionError,
+    @manila_utils.retry(exception=exception.InfortrendNASException,
                         interval=3,
                         retries=5)
     def _ssh_execute(self, commands):
@@ -80,7 +79,7 @@ class InfortrendNAS(object):
         try:
             out, err = processutils.ssh_execute(
                 self.ssh, commands,
-                timeout=self.cli_timeout, check_exit_code=True)
+                timeout=self.ssh_timeout, check_exit_code=True)
         except processutils.ProcessExecutionError as pe:
             rc = pe.exit_code
             out = pe.stdout
@@ -88,8 +87,7 @@ class InfortrendNAS(object):
             msg = _('Error on execute ssh command. '
                     'Exit code: %(rc)d, msg: %(out)s') % {
                         'rc': rc, 'out': out}
-            LOG.error(msg)
-            raise
+            raise exception.InfortrendNASException(err=msg)
 
         return out
 

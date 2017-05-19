@@ -49,12 +49,9 @@ infortrend_nas_opts = [
                default=None,
                help='Infortrend channels for file service. '
                'It is separated with comma.'),
-    cfg.IntOpt('infortrend_cli_max_retries',
-               default=5,
-               help='Maximum retry times for cli.'),
-    cfg.IntOpt('infortrend_cli_timeout',
+    cfg.IntOpt('infortrend_ssh_timeout',
                default=30,
-               help='CLI timeout in seconds.'),
+               help='SSH timeout in seconds.'),
 ]
 
 CONF = cfg.CONF
@@ -80,8 +77,7 @@ class InfortrendNASDriver(driver.ShareDriver):
         username = self.configuration.safe_get('infortrend_nas_user')
         password = self.configuration.safe_get('infortrend_nas_password')
         ssh_key = self.configuration.safe_get('infortrend_nas_ssh_key')
-        retries = self.configuration.safe_get('infortrend_cli_max_retries')
-        timeout = self.configuration.safe_get('infortrend_cli_timeout')
+        timeout = self.configuration.safe_get('infortrend_ssh_timeout')
         self.backend_name = self.configuration.safe_get('share_backend_name')
 
         if not nas_ip:
@@ -96,7 +92,7 @@ class InfortrendNASDriver(driver.ShareDriver):
         pool_dict = self._init_pool_dict()
         channel_dict = self._init_channel_dict()
         self.ift_nas = infortrend_nas.InfortrendNAS(nas_ip, username, password,
-                                                    ssh_key, retries, timeout,
+                                                    ssh_key, timeout,
                                                     pool_dict, channel_dict)
 
     def _init_pool_dict(self):
