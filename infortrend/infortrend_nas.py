@@ -94,6 +94,7 @@ class InfortrendNAS(object):
         return out
 
     def _parser(self, content=None):
+        LOG.debug('parsing data:\n%s' % content)
         content = content.replace("\r", "")
         content = content.strip()
         json_string = content.replace("'", "\"")
