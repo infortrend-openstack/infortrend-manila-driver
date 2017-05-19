@@ -163,7 +163,7 @@ class InfortrendNAS(object):
             raise exception.InfortrendNASException(message=msg)
 
     def _check_pools_setup(self):
-        pool_list = self.pool_dict.keys()
+        pool_list = list(self.pool_dict.keys())
         command_line = ['folder', 'status']
         rc, pool_data = self._execute(command_line)
         for pool in pool_data:
