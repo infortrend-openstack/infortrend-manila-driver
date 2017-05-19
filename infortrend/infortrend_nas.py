@@ -222,7 +222,7 @@ class InfortrendNAS(object):
 
     def _get_pool_quota_used(self, pool_name):
         pool_quota_used = 0.0
-        pool_id = self.pool_dict[pool_name]['id']
+        pool_id = self._get_share_pool_id(pool_name)
 
         command_line = ['fquota', 'status', pool_id,
                         pool_name, '-t', 'folder']
@@ -233,9 +233,22 @@ class InfortrendNAS(object):
 
         return pool_quota_used
 
+    def _get_share_pool_id(self, pool_name):
+        if not pool_name:
+            msg = _("Pool is not available in the share host.")
+            raise exception.InvalidHost(reason=msg)
+
+        if pool_name in self.pool_dict.keys():
+            return self.pool_dict[pool_name]['id']
+        else:
+            msg = _('Pool [%(pool_name)s] not set in conf.') % {
+                'pool_name': pool_name}
+            LOG.error(msg)
+            raise exception.InfortrendNASException(err=msg)
+
     def create_share(self, share, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
-        pool_id = self.pool_dict[pool_name]['id']
+        pool_id = self._get_share_pool_id(pool_name)
         pool_path = self.pool_dict[pool_name]['path']
         share_proto = share['share_proto'].lower()
         share_name = share['share_id'].replace('-', '')
@@ -301,7 +314,7 @@ class InfortrendNAS(object):
 
     def delete_share(self, share, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
-        pool_id = self.pool_dict[pool_name]['id']
+        pool_id = self._get_share_pool_id(pool_name)
         share_name = share['share_id'].replace('-', '')
 
         if self._check_share_exist(pool_name, share_name):
@@ -495,7 +508,7 @@ class InfortrendNAS(object):
 
     def extend_share(self, share, new_size, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
-        pool_id = self.pool_dict[pool_name]['id']
+        pool_id = self._get_share_pool_id(pool_name)
         share_name = share['share_id'].replace('-', '')
         self._set_share_size(pool_id, pool_name, share_name, new_size)
 
@@ -506,7 +519,7 @@ class InfortrendNAS(object):
 
     def shrink_share(self, share, new_size, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
-        pool_id = self.pool_dict[pool_name]['id']
+        pool_id = self._get_share_pool_id(pool_name)
         share_name = share['share_id'].replace('-', '')
 
         command_line = ['fquota', 'status', pool_id,
@@ -531,7 +544,7 @@ class InfortrendNAS(object):
     def manage_existing(self, share, driver_options):
         share_proto = share['share_proto'].lower()
         pool_name = share_utils.extract_host(share['host'], level='pool')
-        pool_id = self.pool_dict[pool_name]['id']
+        pool_id = self._get_share_pool_id(pool_name)
         pool_path = self.pool_dict[pool_name]['path']
         input_location = share['export_locations'][0]['path']
         share_name = share['share_id'].replace('-', '')
@@ -608,12 +621,10 @@ class InfortrendNAS(object):
         return ip, folder_name
 
     def _check_channel_ip(self, channel_ip):
-        channel_ip_exist = False
         for ch, ip in self.channel_dict.items():
             if ip == channel_ip:
-                channel_ip_exist = True
-                break
-        return channel_ip_exist
+                return True
+        return False
 
     def unmanage(self, share):
         pool_name = share_utils.extract_host(share['host'], level='pool')
