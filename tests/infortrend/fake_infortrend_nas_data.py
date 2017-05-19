@@ -19,6 +19,9 @@ class InfortrendNASTestData(object):
     fake_share_id = ['4d6984fd-8572-4467-964f-24936a8c4ea2',  # NFS
                      'a7b933e6-bb77-4823-a86f-f2c3ab41a8a5']  # CIFS
 
+    fake_share_name = [fake_share_id[0].replace('-', ''),
+                       fake_share_id[1].replace('-', '')]
+
     fake_channel_ip = ['172.27.112.223', '172.27.113.209']
 
     fake_service_status_data = ('(64175, 1234, 272, 0)\n\n'
@@ -167,12 +170,12 @@ class InfortrendNASTestData(object):
         'id': '537178178'}, {
         'quota': '32212254720',
         'used': '0',
-        'name': fake_share_id[0],
+        'name': fake_share_name[0],
         'type': 'subfolder',
         'id': '805306752'}, {
         'quota': '53687091200',
         'used': '21474836480',
-        'name': fake_share_id[1],
+        'name': fake_share_name[1],
         'type': 'subfolder',
         'id': '69'}, {
         'quota': '94091997184',
@@ -191,7 +194,7 @@ class InfortrendNASTestData(object):
             'oss': False,
             'sftp': False,
             'nfs': status,
-            'directory': '/LV-1/share-pool-01/' + self.fake_share_id[0],
+            'directory': '/LV-1/share-pool-01/' + self.fake_share_name[0],
             'exist': True,
             'afp': False,
             'webdav': False
@@ -218,7 +221,7 @@ class InfortrendNASTestData(object):
             'oss': False,
             'sftp': False,
             'nfs': False,
-            'directory': '/LV-1/share-pool-01/' + self.fake_share_id[1],
+            'directory': '/LV-1/share-pool-01/' + self.fake_share_name[1],
             'exist': True,
             'afp': False,
             'webdav': False
@@ -278,11 +281,11 @@ class InfortrendNASTestData(object):
         'quota': '32212254720',
         'modifyTime': '2017-04-27 16:15',
         'owner': 'A',
-        'path': '/LV-1/share-pool-01/' + fake_share_id[0],
+        'path': '/LV-1/share-pool-01/' + fake_share_name[0],
         'subshare': False,
         'type': 'subfolder',
         'empty': True,
-        'name': fake_share_id[0]}, {
+        'name': fake_share_name[0]}, {
         'size': '6',
         'index': '512',
         'description': '',
@@ -293,11 +296,11 @@ class InfortrendNASTestData(object):
         'quota': '53687091200',
         'modifyTime': '2017-04-27 16:16',
         'owner': 'A',
-        'path': '/LV-1/share-pool-01/' + fake_share_id[1],
+        'path': '/LV-1/share-pool-01/' + fake_share_name[1],
         'subshare': False,
         'type': 'subfolder',
         'empty': True,
-        'name': fake_share_id[1]}, {
+        'name': fake_share_name[1]}, {
         'size': '6',
         'index': '777',
         'description': '',
@@ -342,7 +345,7 @@ class InfortrendNASTestData(object):
         'oss': False,
         'sftp': False,
         'nfs': True,
-        'directory': '/LV-1/share-pool-01/' + fake_share_id[0],
+        'directory': '/LV-1/share-pool-01/' + fake_share_name[0],
         'exist': True,
         'nfs_detail': {
             'hostList': [{

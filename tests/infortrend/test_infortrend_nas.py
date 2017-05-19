@@ -235,11 +235,12 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_create_share_nfs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         fake_share_id = self.m_data.fake_share_nfs['share_id']
+        fake_share_name = fake_share_id.replace('-', '')
         expect_locations = [
             self.nas_data.fake_channel_ip[0] +
-            ':/LV-1/share-pool-01/' + fake_share_id,
+            ':/LV-1/share-pool-01/' + fake_share_name,
             self.nas_data.fake_channel_ip[1] +
-            ':/LV-1/share-pool-01/' + fake_share_id,
+            ':/LV-1/share-pool-01/' + fake_share_name,
         ]
         mock_execute.side_effect = [
             SUCCEED,  # create folder
@@ -254,18 +255,18 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         self.assertEqual(expect_locations, locations)
         mock_execute.assert_any_call(
-            ['share', self.pool_path[0] + fake_share_id, 'nfs', 'on'])
+            ['share', self.pool_path[0] + fake_share_name, 'nfs', 'on'])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_create_share_cifs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         fake_share_id = self.m_data.fake_share_cifs['share_id']
-        fake_cifs_name = fake_share_id.replace('-', '')
+        fake_share_name = fake_share_id.replace('-', '')
         expect_locations = [
             '\\\\' + self.nas_data.fake_channel_ip[0] +
-            '\\' + fake_cifs_name,
+            '\\' + fake_share_name,
             '\\\\' + self.nas_data.fake_channel_ip[1] +
-            '\\' + fake_cifs_name,
+            '\\' + fake_share_name,
         ]
         mock_execute.side_effect = [
             SUCCEED,  # create folder
@@ -280,12 +281,14 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
         self.assertEqual(expect_locations, locations)
         mock_execute.assert_any_call(
-            ['share', self.pool_path[0] + fake_share_id,
-             'cifs', 'on', '-n', fake_cifs_name])
+            ['share', self.pool_path[0] + fake_share_name,
+             'cifs', 'on', '-n', fake_share_name])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_delete_share_nfs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
+        fake_share_id = self.m_data.fake_share_nfs['share_id']
+        fake_share_name = fake_share_id.replace('-', '')
         mock_execute.side_effect = [
             (0, self.nas_data.fake_subfolder_data),  # pagelist folder
             SUCCEED,  # delete folder
@@ -295,12 +298,14 @@ class InfortrendNASDriverTestCase(test.TestCase):
             self._ctxt, self.m_data.fake_share_nfs)
 
         mock_execute.assert_any_call(
-            ['folder', 'options', self.pool_id[0], 'share-pool-01',
-             '-d', self.m_data.fake_share_nfs['share_id']])
+            ['folder', 'options', self.pool_id[0],
+             'share-pool-01', '-d', fake_share_name])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_delete_share_cifs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
+        fake_share_id = self.m_data.fake_share_cifs['share_id']
+        fake_share_name = fake_share_id.replace('-', '')
         mock_execute.side_effect = [
             (0, self.nas_data.fake_subfolder_data),  # pagelist folder
             SUCCEED,  # delete folder
@@ -310,8 +315,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
             self._ctxt, self.m_data.fake_share_cifs)
 
         mock_execute.assert_any_call(
-            ['folder', 'options', self.pool_id[0], 'share-pool-01',
-             '-d', self.m_data.fake_share_cifs['share_id']])
+            ['folder', 'options', self.pool_id[0],
+             'share-pool-01', '-d', fake_share_name])
 
     @mock.patch.object(infortrend_nas.LOG, 'warning')
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
@@ -330,7 +335,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_nfs_add_rule(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
-        share_path = self.pool_path[0] + share_id
+        share_name = share_id.replace('-', '')
+        share_path = self.pool_path[0] + share_name
         mock_execute.side_effect = [
             SUCCEED,
         ]
@@ -363,7 +369,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_nfs_delete_rule(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
-        share_path = self.pool_path[0] + share_id
+        share_name = share_id.replace('-', '')
+        share_path = self.pool_path[0] + share_name
         mock_execute.side_effect = [
             SUCCEED,
         ]
@@ -384,7 +391,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_cifs_add_user_rw(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_cifs['share_id']
-        share_path = self.pool_path[0] + share_id
+        share_name = share_id.replace('-', '')
+        share_path = self.pool_path[0] + share_name
         mock_execute.side_effect = [
             (0, self.nas_data.fake_cifs_user_list),  # check user exist
             SUCCEED,
@@ -408,7 +416,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_cifs_add_user_ro(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_cifs['share_id']
-        share_path = self.pool_path[0] + share_id
+        share_name = share_id.replace('-', '')
+        share_path = self.pool_path[0] + share_name
         mock_execute.side_effect = [
             (0, self.nas_data.fake_cifs_user_list),  # check user exist
             SUCCEED,
@@ -448,7 +457,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_update_access_cifs_delete_rule(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_cifs['share_id']
-        share_path = self.pool_path[0] + share_id
+        share_name = share_id.replace('-', '')
+        share_path = self.pool_path[0] + share_name
         mock_execute.side_effect = [
             (0, self.nas_data.fake_cifs_user_list),  # check user exist
             SUCCEED,
@@ -484,7 +494,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_clear_access_nfs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
-        share_path = self.pool_path[0] + share_id
+        share_name = share_id.replace('-', '')
+        share_path = self.pool_path[0] + share_name
         mock_execute.side_effect = [
             (0, self.nas_data.fake_share_status_nfs_with_rules),
             SUCCEED,  # clear access
@@ -517,7 +528,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_clear_access_cifs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_cifs['share_id']
-        share_path = self.pool_path[0] + share_id
+        share_name = share_id.replace('-', '')
+        share_path = self.pool_path[0] + share_name
         mock_execute.side_effect = [
             (0, self.nas_data.fake_share_status_cifs_with_rules),
             SUCCEED,  # clear user01
@@ -568,7 +580,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_ensure_share_nfs(self):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
-        share_path = self.pool_path[0] + share_id
+        share_name = share_id.replace('-', '')
+        share_path = self.pool_path[0] + share_name
         expect_locations = [
             self.nas_data.fake_channel_ip[0] + ':' + share_path,
             self.nas_data.fake_channel_ip[1] + ':' + share_path,
@@ -584,12 +597,12 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_ensure_share_cifs(self):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_cifs['share_id']
-        fake_cifs_name = share_id.replace('-', '')
+        share_name = share_id.replace('-', '')
         expect_locations = [
             '\\\\' + self.nas_data.fake_channel_ip[0] +
-            '\\' + fake_cifs_name,
+            '\\' + share_name,
             '\\\\' + self.nas_data.fake_channel_ip[1] +
-            '\\' + fake_cifs_name,
+            '\\' + share_name,
         ]
         self._iftnas._execute = mock.Mock(
             return_value=(0, self.nas_data.fake_get_channel_status()))
@@ -602,18 +615,20 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_extend_share(self):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
+        share_name = share_id.replace('-', '')
         self._iftnas._execute = mock.Mock(return_value=SUCCEED)
 
         self._driver.extend_share(self.m_data.fake_share_nfs, 100)
 
         self._iftnas._execute.assert_called_once_with(
             ['fquota', 'create', self.pool_id[0], 'share-pool-01',
-             share_id, '100G', '-t', 'folder'])
+             share_name, '100G', '-t', 'folder'])
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_shrink_share(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_nfs['share_id']
+        share_name = share_id.replace('-', '')
         mock_execute.side_effect = [
             (0, self.nas_data.fake_fquota_status),  # check used
             SUCCEED,
@@ -625,7 +640,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             mock.call(['fquota', 'status', self.pool_id[0],
                        'share-pool-01', '-t', 'folder']),
             mock.call(['fquota', 'create', self.pool_id[0],
-                       'share-pool-01', share_id, '10G',
+                       'share-pool-01', share_name, '10G',
                        '-t', 'folder'])
         ])
 
@@ -655,8 +670,9 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_manage_existing_nfs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_for_manage_nfs['share_id']
+        share_name = share_id.replace('-', '')
         origin_share_path = self.pool_path[0] + 'test-folder'
-        export_share_path = self.pool_path[0] + share_id
+        export_share_path = self.pool_path[0] + share_name
         expect_result = {
             'size': 20.0,
             'export_locations': [
@@ -686,7 +702,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
             mock.call(['fquota', 'status', self.pool_id[0],
                        'share-pool-01', '-t', 'folder']),
             mock.call(['folder', 'options', self.pool_id[0],
-                       'share-pool-01', '-e', 'test-folder', share_id]),
+                       'share-pool-01', '-e', 'test-folder', share_name]),
             mock.call(['ifconfig', 'inet', 'show']),
         ])
 
@@ -694,13 +710,13 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_manage_existing_cifs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_for_manage_cifs['share_id']
-        cifs_name = share_id.replace('-', '')
+        share_name = share_id.replace('-', '')
         origin_share_path = self.pool_path[0] + 'test-folder-02'
         expect_result = {
             'size': 87.63,
             'export_locations': [
-                '\\\\' + self.nas_data.fake_channel_ip[0] + '\\' + cifs_name,
-                '\\\\' + self.nas_data.fake_channel_ip[1] + '\\' + cifs_name,
+                '\\\\' + self.nas_data.fake_channel_ip[0] + '\\' + share_name,
+                '\\\\' + self.nas_data.fake_channel_ip[1] + '\\' + share_name,
             ]
         }
         mock_execute.side_effect = [
@@ -722,11 +738,11 @@ class InfortrendNASDriverTestCase(test.TestCase):
             mock.call(['pagelist', 'folder', self.pool_path[0]]),
             mock.call(['share', 'status', '-f', origin_share_path]),
             mock.call(['share', origin_share_path, 'cifs', 'on',
-                       '-n', cifs_name]),
+                       '-n', share_name]),
             mock.call(['fquota', 'status', self.pool_id[0],
                        'share-pool-01', '-t', 'folder']),
             mock.call(['folder', 'options', self.pool_id[0],
-                       'share-pool-01', '-e', 'test-folder-02', share_id]),
+                       'share-pool-01', '-e', 'test-folder-02', share_name]),
             mock.call(['ifconfig', 'inet', 'show']),
         ])
 
@@ -780,44 +796,32 @@ class InfortrendNASDriverTestCase(test.TestCase):
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_unmanage_nfs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
-        fake_share = self.m_data.fake_share_nfs
-        share_id = fake_share['share_id']
-        unmanage_name = share_id.replace('-', '')
         mock_execute.side_effect = [
             (0, self.nas_data.fake_subfolder_data),  # pagelist folder
-            SUCCEED,  # rename share
         ]
 
         self._driver.unmanage(
             self.m_data.fake_share_nfs,
         )
 
-        mock_execute.assert_has_calls([
-            mock.call(['pagelist', 'folder', self.pool_path[0]]),
-            mock.call(['folder', 'options', self.pool_id[0],
-                       'share-pool-01', '-e', share_id, unmanage_name]),
-        ])
+        mock_execute.assert_called_once_with(
+            ['pagelist', 'folder', self.pool_path[0]],
+        )
 
     @mock.patch.object(infortrend_nas.InfortrendNAS, '_execute')
     def test_unmanage_cifs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
-        fake_share = self.m_data.fake_share_cifs
-        share_id = fake_share['share_id']
-        unmanage_name = share_id.replace('-', '')
         mock_execute.side_effect = [
             (0, self.nas_data.fake_subfolder_data),  # pagelist folder
-            SUCCEED,  # rename share
         ]
 
         self._driver.unmanage(
             self.m_data.fake_share_cifs,
         )
 
-        mock_execute.assert_has_calls([
-            mock.call(['pagelist', 'folder', self.pool_path[0]]),
-            mock.call(['folder', 'options', self.pool_id[0],
-                       'share-pool-01', '-e', share_id, unmanage_name]),
-        ])
+        mock_execute.assert_called_once_with(
+            ['pagelist', 'folder', self.pool_path[0]],
+        )
 
     @mock.patch.object(infortrend_nas.LOG, 'warning')
     def test_unmanage_share_not_exist(self, log_warning):
