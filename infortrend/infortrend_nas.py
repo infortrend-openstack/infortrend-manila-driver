@@ -270,6 +270,7 @@ class InfortrendNAS(object):
         pool_path = self.pool_dict[pool_name]['path']
         share_proto = share['share_proto'].lower()
         share_path = pool_path + share['share_id']
+        cifs_name = share['share_id'].replace('-', '')
 
         command_line = ['folder', 'options', pool_id,
                         pool_name, '-c', share['share_id']]
@@ -277,8 +278,7 @@ class InfortrendNAS(object):
 
         self._set_share_size(
             pool_id, pool_name, share['share_id'], share['size'])
-        self._ensure_protocol_on(
-            share_path, share_proto, share['share_id'][:31])
+        self._ensure_protocol_on(share_path, share_proto, cifs_name)
 
         LOG.info('Create Share [%(share)s] completed.', {
             'share': share['share_id']})
@@ -289,14 +289,14 @@ class InfortrendNAS(object):
         location = []
         location_data = {
             'pool_path': pool_path,
-            'id': share['share_id'],
-            'cifs': share['share_id'][:31],
+            'nfs': share['share_id'],
+            'cifs': share['share_id'].replace('-', ''),
         }
         self._check_channels_status()
         for ch in sorted(self.channel_dict.keys()):
             ip = self.channel_dict[ch]
             if share_proto == 'nfs':
-                location.append(ip + ':%(pool_path)s%(id)s' % location_data)
+                location.append(ip + ':%(pool_path)s%(nfs)s' % location_data)
             elif share_proto == 'cifs':
                 location.append('\\\\' + ip + '\\%(cifs)s' % location_data)
             else:
@@ -556,7 +556,7 @@ class InfortrendNAS(object):
         pool_id = self.pool_dict[pool_name]['id']
         pool_path = self.pool_dict[pool_name]['path']
         input_location = share['export_locations'][0]['path']
-        display_name = share['display_name'] or share['share_id'][:31]
+        cifs_name = share['share_id'].replace('-', '')
 
         ch_ip, share_name = self._parse_location(input_location, share_proto)
 
@@ -576,8 +576,7 @@ class InfortrendNAS(object):
             raise exception.InfortrendNASException(err=msg)
 
         share_path = pool_path + share_name
-        self._ensure_protocol_on(
-            share_path, share_proto, share['share_id'][:31])
+        self._ensure_protocol_on(share_path, share_proto, cifs_name)
         share_size = self._get_share_size(pool_id, pool_name, share_name)
 
         if not share_size:
@@ -600,7 +599,7 @@ class InfortrendNAS(object):
                      'ift_name': share_name,
                      'size': share_size,
                      'share_proto': share_proto,
-                     'display_name': display_name})
+                     'display_name': share['display_name']})
 
         return {'size': share_size, 'export_locations': location}
 
@@ -647,7 +646,7 @@ class InfortrendNAS(object):
                 'share_name': share['share_id']})
             return
 
-        unmanage_name = share['display_name']
+        unmanage_name = share['share_id'].replace('-', '')
 
         # rename share name
         command_line = ['folder', 'options', pool_id,

@@ -260,7 +260,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_create_share_cifs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         fake_share_id = self.m_data.fake_share_cifs['share_id']
-        fake_cifs_name = fake_share_id[:31]
+        fake_cifs_name = fake_share_id.replace('-', '')
         expect_locations = [
             '\\\\' + self.nas_data.fake_channel_ip[0] +
             '\\' + fake_cifs_name,
@@ -583,7 +583,8 @@ class InfortrendNASDriverTestCase(test.TestCase):
 
     def test_ensure_share_cifs(self):
         self._get_driver(self.fake_conf, True)
-        fake_cifs_name = self.m_data.fake_share_cifs['share_id'][:31]
+        share_id = self.m_data.fake_share_cifs['share_id']
+        fake_cifs_name = share_id.replace('-', '')
         expect_locations = [
             '\\\\' + self.nas_data.fake_channel_ip[0] +
             '\\' + fake_cifs_name,
@@ -693,7 +694,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
     def test_manage_existing_cifs(self, mock_execute):
         self._get_driver(self.fake_conf, True)
         share_id = self.m_data.fake_share_for_manage_cifs['share_id']
-        cifs_name = share_id[:31]
+        cifs_name = share_id.replace('-', '')
         origin_share_path = self.pool_path[0] + 'test-folder-02'
         expect_result = {
             'size': 87.63,
@@ -781,7 +782,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self._get_driver(self.fake_conf, True)
         fake_share = self.m_data.fake_share_nfs
         share_id = fake_share['share_id']
-        unmanage_name = fake_share['display_name']
+        unmanage_name = share_id.replace('-', '')
         mock_execute.side_effect = [
             (0, self.nas_data.fake_subfolder_data),  # pagelist folder
             SUCCEED,  # rename share
@@ -802,7 +803,7 @@ class InfortrendNASDriverTestCase(test.TestCase):
         self._get_driver(self.fake_conf, True)
         fake_share = self.m_data.fake_share_cifs
         share_id = fake_share['share_id']
-        unmanage_name = fake_share['display_name']
+        unmanage_name = share_id.replace('-', '')
         mock_execute.side_effect = [
             (0, self.nas_data.fake_subfolder_data),  # pagelist folder
             SUCCEED,  # rename share
