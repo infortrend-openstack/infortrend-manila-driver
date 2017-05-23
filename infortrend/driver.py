@@ -30,15 +30,15 @@ infortrend_nas_opts = [
                'It is the ip for management.'),
     cfg.StrOpt('infortrend_nas_user',
                default='manila',
-               help='Infortrend nas username.'),
+               help='User for the Infortrend NAS server.'),
     cfg.StrOpt('infortrend_nas_password',
                default=None,
-               help='Infortrend nas password. '
+               help='Password for the Infortrend NAS server. '
                'This is not necessary '
                'if infortrend_nas_ssh_key is set.'),
     cfg.StrOpt('infortrend_nas_ssh_key',
                default=None,
-               help='Infortrend nas ssh key. '
+               help='SSH key for the Infortrend NAS server. '
                'This is not necessary '
                'if infortrend_nas_password is set.'),
     cfg.StrOpt('infortrend_share_pools',
@@ -175,7 +175,7 @@ class InfortrendNASDriver(driver.ShareDriver):
             'access_rules: %(access_rules)s, '
             'add_rules: %(add_rules)s, '
             'delete_rules: %(delete_rules)s', {
-                'share': dict(share),
+                'share': share['share_id'],
                 'access_rules': self._list_of_dict(access_rules),
                 'add_rules': self._list_of_dict(add_rules),
                 'delete_rules': self._list_of_dict(delete_rules),
@@ -253,7 +253,7 @@ class InfortrendNASDriver(driver.ShareDriver):
         LOG.debug(
             'Manage existing for share: %(share)s, '
             'driver_options: %(driver_options)s, ', {
-                'share': dict(share),
+                'share': share['share_id'],
                 'driver_options': dict(driver_options),
             })
         return self.ift_nas.manage_existing(share, driver_options)
@@ -273,7 +273,7 @@ class InfortrendNASDriver(driver.ShareDriver):
         """
         LOG.debug(
             'Unmanage share: %(share)s', {
-                'share': dict(share),
+                'share': share['share_id'],
             })
         return self.ift_nas.unmanage(share)
 
