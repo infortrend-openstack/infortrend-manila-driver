@@ -16,6 +16,8 @@
 import ddt
 import mock
 
+from oslo_config import cfg
+
 from manila import context
 from manila import exception
 from manila.share import configuration
@@ -24,12 +26,10 @@ from manila.share.drivers.infortrend import infortrend_nas
 from manila import test
 from manila.tests.share.drivers.infortrend import fake_infortrend_manila_data
 from manila.tests.share.drivers.infortrend import fake_infortrend_nas_data
-from oslo_config import cfg
 
 CONF = cfg.CONF
 
 SUCCEED = (0, [])
-FAILED = (-1, None)
 
 
 @ddt.ddt

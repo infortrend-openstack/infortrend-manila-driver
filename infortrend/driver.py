@@ -134,7 +134,7 @@ class InfortrendNASDriver(driver.ShareDriver):
     def _update_share_stats(self):
         """Retrieve stats info from share group."""
 
-        LOG.debug('Updating Infortrend share stats.')
+        LOG.debug('Updating Infortrend backend [%s].' % self.backend_name)
 
         data = dict(share_backend_name=self.backend_name,
                     vendor_name='Infortrend',

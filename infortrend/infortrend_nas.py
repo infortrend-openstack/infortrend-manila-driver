@@ -213,6 +213,7 @@ class InfortrendNAS(object):
                     'compression': False,
                     'snapshot_support': False,
                     'thin_provisioning': False,
+                    'thick_provisioning': True,
                     'replication_type': None,
                 }
                 pools.append(pool)
@@ -222,9 +223,8 @@ class InfortrendNAS(object):
     def _get_pool_quota_used(self, pool_name):
         pool_quota_used = 0.0
         pool_data = self._get_share_pool_data(pool_name)
-        pool_id = pool_data['id']
 
-        command_line = ['fquota', 'status', pool_id,
+        command_line = ['fquota', 'status', pool_data['id'],
                         pool_name, '-t', 'folder']
         rc, quota_status = self._execute(command_line)
 
@@ -249,24 +249,23 @@ class InfortrendNAS(object):
     def create_share(self, share, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_data = self._get_share_pool_data(pool_name)
-        pool_id = pool_data['id']
-        pool_path = pool_data['path']
         share_proto = share['share_proto'].lower()
         share_name = share['share_id'].replace('-', '')
-        share_path = pool_path + share_name
+        share_path = pool_data['path'] + share_name
 
-        command_line = ['folder', 'options', pool_id,
+        command_line = ['folder', 'options', pool_data['id'],
                         pool_name, '-c', share_name]
         self._execute(command_line)
 
         self._set_share_size(
-            pool_id, pool_name, share_name, share['size'])
+            pool_data['id'], pool_name, share_name, share['size'])
         self._ensure_protocol_on(share_path, share_proto, share_name)
 
         LOG.info('Create Share [%(share)s] completed.', {
             'share': share['share_id']})
 
-        return self._export_location(share_name, share_proto, pool_path)
+        return self._export_location(
+            share_name, share_proto, pool_data['path'])
 
     def _export_location(self, share_name, share_proto, pool_path=None):
         location = []
@@ -316,11 +315,10 @@ class InfortrendNAS(object):
     def delete_share(self, share, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_data = self._get_share_pool_data(pool_name)
-        pool_id = pool_data['id']
         share_name = share['share_id'].replace('-', '')
 
         if self._check_share_exist(pool_name, share_name):
-            command_line = ['folder', 'options', pool_id,
+            command_line = ['folder', 'options', pool_data['id'],
                             pool_name, '-d', share_name]
             self._execute(command_line)
         else:
@@ -354,9 +352,8 @@ class InfortrendNAS(object):
     def _clear_access(self, share, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_data = self._get_share_pool_data(pool_name)
-        pool_path = pool_data['path']
         share_name = share['share_id'].replace('-', '')
-        share_path = pool_path + share_name
+        share_path = pool_data['path'] + share_name
         share_proto = share['share_proto'].lower()
 
         if share_proto == 'nfs':
@@ -382,9 +379,8 @@ class InfortrendNAS(object):
     def allow_access(self, share, access, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_data = self._get_share_pool_data(pool_name)
-        pool_path = pool_data['path']
         share_name = share['share_id'].replace('-', '')
-        share_path = pool_path + share_name
+        share_path = pool_data['path'] + share_name
         share_proto = share['share_proto'].lower()
         access_type = access['access_type']
         access_level = access['access_level'] or constants.ACCESS_LEVEL_RW
@@ -462,9 +458,8 @@ class InfortrendNAS(object):
     def deny_access(self, share, access, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_data = self._get_share_pool_data(pool_name)
-        pool_path = pool_data['path']
         share_name = share['share_id'].replace('-', '')
-        share_path = pool_path + share_name
+        share_path = pool_data['path'] + share_name
         share_proto = share['share_proto'].lower()
         access_type = access['access_type']
         access_to = access['access_to']
@@ -508,16 +503,15 @@ class InfortrendNAS(object):
         share_proto = share['share_proto'].lower()
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_data = self._get_share_pool_data(pool_name)
-        pool_path = pool_data['path']
         share_name = share['share_id'].replace('-', '')
-        return self._export_location(share_name, share_proto, pool_path)
+        return self._export_location(
+            share_name, share_proto, pool_data['path'])
 
     def extend_share(self, share, new_size, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_data = self._get_share_pool_data(pool_name)
-        pool_id = pool_data['id']
         share_name = share['share_id'].replace('-', '')
-        self._set_share_size(pool_id, pool_name, share_name, new_size)
+        self._set_share_size(pool_data['id'], pool_name, share_name, new_size)
 
         LOG.info('Successfully Extend Share [%(share)s] '
                  'to size [%(new_size)s G].', {
@@ -527,10 +521,9 @@ class InfortrendNAS(object):
     def shrink_share(self, share, new_size, share_server=None):
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_data = self._get_share_pool_data(pool_name)
-        pool_id = pool_data['id']
         share_name = share['share_id'].replace('-', '')
 
-        command_line = ['fquota', 'status', pool_id,
+        command_line = ['fquota', 'status', pool_data['id'],
                         pool_name, '-t', 'folder']
         rc, quota_status = self._execute(command_line)
 
@@ -542,7 +535,7 @@ class InfortrendNAS(object):
             raise exception.ShareShrinkingPossibleDataLoss(
                 share_id=share['id'])
 
-        self._set_share_size(pool_id, pool_name, share_name, new_size)
+        self._set_share_size(pool_data['id'], pool_name, share_name, new_size)
 
         LOG.info('Successfully Shrink Share [%(share)s] '
                  'to size [%(new_size)s G].', {
@@ -553,8 +546,6 @@ class InfortrendNAS(object):
         share_proto = share['share_proto'].lower()
         pool_name = share_utils.extract_host(share['host'], level='pool')
         pool_data = self._get_share_pool_data(pool_name)
-        pool_id = pool_data['id']
-        pool_path = pool_data['path']
         input_location = share['export_locations'][0]['path']
         share_name = share['share_id'].replace('-', '')
 
@@ -575,9 +566,10 @@ class InfortrendNAS(object):
             LOG.error(msg)
             raise exception.InfortrendNASException(err=msg)
 
-        share_path = pool_path + folder_name
+        share_path = pool_data['path'] + folder_name
         self._ensure_protocol_on(share_path, share_proto, share_name)
-        share_size = self._get_share_size(pool_id, pool_name, folder_name)
+        share_size = self._get_share_size(
+            pool_data['id'], pool_name, folder_name)
 
         if not share_size:
             msg = _('Folder [%(folder_name)s] has no size limitation, '
@@ -587,11 +579,12 @@ class InfortrendNAS(object):
             raise exception.InfortrendNASException(err=msg)
 
         # rename folder name
-        command_line = ['folder', 'options', pool_id, pool_name,
+        command_line = ['folder', 'options', pool_data['id'], pool_name,
                         '-e', folder_name, share_name]
         self._execute(command_line)
 
-        location = self._export_location(share_name, share_proto, pool_path)
+        location = self._export_location(
+            share_name, share_proto, pool_data['path'])
 
         LOG.info('Successfully Manage Infortrend Share [%(folder_name)s], '
                  'Size: [%(size)s G], Protocol: [%(share_proto)s], '
@@ -644,5 +637,5 @@ class InfortrendNAS(object):
                 'share_name': share_name})
             return
 
-        LOG.info('Successfully Unmanage Share [%(share)s].', {
+        LOG.info('Successfully Unmanaged Share [%(share)s].', {
             'share': share['share_id']})
