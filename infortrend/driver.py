@@ -134,7 +134,7 @@ class InfortrendNASDriver(driver.ShareDriver):
     def _update_share_stats(self):
         """Retrieve stats info from share group."""
 
-        LOG.debug('Updating Infortrend backend [%s].' % self.backend_name)
+        LOG.debug('Updating Infortrend backend [%s].', self.backend_name)
 
         data = dict(share_backend_name=self.backend_name,
                     vendor_name='Infortrend',
@@ -144,7 +144,7 @@ class InfortrendNASDriver(driver.ShareDriver):
                     free_capacity_gb=0.0,
                     reserved_percentage=0,
                     pools=self.ift_nas.update_pools_stats())
-        LOG.debug('Infortrend pools status: %s' % data['pools'])
+        LOG.debug('Infortrend pools status: %s', data['pools'])
 
         super(InfortrendNASDriver, self)._update_share_stats(data)
 
@@ -193,14 +193,14 @@ class InfortrendNASDriver(driver.ShareDriver):
     def create_share(self, context, share, share_server=None):
         """Is called to create share."""
 
-        LOG.debug('Creating share: %s.' % share['share_id'])
+        LOG.debug('Creating share: %s.', share['share_id'])
 
         return self.ift_nas.create_share(share, share_server)
 
     def delete_share(self, context, share, share_server=None):
         """Is called to remove share."""
 
-        LOG.debug('Deleting share: %s.' % share['share_id'])
+        LOG.debug('Deleting share: %s.', share['share_id'])
 
         return self.ift_nas.delete_share(share, share_server)
 
