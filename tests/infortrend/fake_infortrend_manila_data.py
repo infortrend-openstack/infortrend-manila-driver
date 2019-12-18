@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Infortrend Technology, Inc.
+# Copyright (c) 2019 Infortrend Technology, Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -37,8 +37,8 @@ class InfortrendManilaTestData(object):
         'size': 30,
         'replica_state': None,
         'user_id': '4944594433f0405588928a4212964658',
-        'export_location': '172.27.112.223:/LV-1/share-pool-01/' +
-                           fake_share_id[0],
+        'export_location': '172.27.112.223:/share-pool-01/LV-1/' +
+        fake_share_id[0],
         'display_description': None,
         'consistency_group_id': None,
         'project_id': '0e63326c50a246ac81fa1a0c8e003d5b',
@@ -140,7 +140,7 @@ class InfortrendManilaTestData(object):
         'size': 30,
         'replica_state': None,
         'user_id': '4944594433f0405588928a4212964658',
-        'export_location': '172.27.112.223:/LV-1/share-pool-01/' +
+        'export_location': '172.27.112.223:/share-pool-01/LV-1/' +
                            fake_id[0],
         'display_description': None,
         'consistency_group_id': None,
@@ -285,7 +285,7 @@ class InfortrendManilaTestData(object):
             'updated_at': 'datetime.datetime(2017, 5, 10, 10, 0, 3)',
             'is_admin_only': False,
             'share_instance_id': 'd3cfe195-85cf-41e6-be4f-a96f7e7db192',
-            'path': '172.27.112.223:/LV-1/share-pool-01/test-folder',
+            'path': '172.27.112.223:/share-pool-01/LV-1/test-folder',
             'el_metadata': {},
             'deleted_at': None,
             'id': 83
@@ -297,7 +297,7 @@ class InfortrendManilaTestData(object):
         'size': None,
         'replica_state': None,
         'user_id': '4944594433f0405588928a4212964658',
-        'export_location': '172.27.112.223:/LV-1/share-pool-01/test-folder',
+        'export_location': '172.27.112.223:/share-pool-01/LV-1/test-folder',
         'display_description': '',
         'consistency_group_id': None,
         'project_id': '0e63326c50a246ac81fa1a0c8e003d5b',

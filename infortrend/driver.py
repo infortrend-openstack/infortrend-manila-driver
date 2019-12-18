@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Infortrend Technology, Inc.
+# Copyright (c) 2019 Infortrend Technology, Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -24,15 +24,15 @@ from manila.share.drivers.infortrend import infortrend_nas
 LOG = log.getLogger(__name__)
 
 infortrend_nas_opts = [
-    cfg.StrOpt('infortrend_nas_ip',
-               default=None,
-               help='Infortrend nas ip. '
-               'It is the ip for management.'),
+    cfg.HostAddressOpt('infortrend_nas_ip',
+                       required=True,
+                       help='Infortrend NAS IP for management.'),
     cfg.StrOpt('infortrend_nas_user',
                default='manila',
                help='User for the Infortrend NAS server.'),
     cfg.StrOpt('infortrend_nas_password',
                default=None,
+               secret=True,
                help='Password for the Infortrend NAS server. '
                'This is not necessary '
                'if infortrend_nas_ssh_key is set.'),
@@ -41,14 +41,12 @@ infortrend_nas_opts = [
                help='SSH key for the Infortrend NAS server. '
                'This is not necessary '
                'if infortrend_nas_password is set.'),
-    cfg.StrOpt('infortrend_share_pools',
-               default=None,
-               help='Infortrend nas pool name list. '
-               'It is separated with comma.'),
-    cfg.StrOpt('infortrend_share_channels',
-               default=None,
-               help='Infortrend channels for file service. '
-               'It is separated with comma.'),
+    cfg.ListOpt('infortrend_share_pools',
+                required=True,
+                help='Comma separated list of Infortrend NAS pools.'),
+    cfg.ListOpt('infortrend_share_channels',
+                required=True,
+                help='Comma separated list of Infortrend channels.'),
     cfg.IntOpt('infortrend_ssh_timeout',
                default=30,
                help='SSH timeout in seconds.'),
@@ -80,10 +78,6 @@ class InfortrendNASDriver(driver.ShareDriver):
         timeout = self.configuration.safe_get('infortrend_ssh_timeout')
         self.backend_name = self.configuration.safe_get('share_backend_name')
 
-        if not nas_ip:
-            msg = _('The infortrend_nas_ip is not set.')
-            raise exception.InvalidParameterValue(err=msg)
-
         if not (password or ssh_key):
             msg = _('Either infortrend_nas_password or infortrend_nas_ssh_key '
                     'should be set.')
@@ -96,30 +90,14 @@ class InfortrendNASDriver(driver.ShareDriver):
                                                     pool_dict, channel_dict)
 
     def _init_pool_dict(self):
-        temp_pool_dict = {}
-        pools_name = self.configuration.safe_get('infortrend_share_pools')
-        if not pools_name:
-            msg = _('The infortrend_share_pools is not set.')
-            raise exception.InvalidParameterValue(err=msg)
+        pools_names = self.configuration.safe_get('infortrend_share_pools')
 
-        tmp_pool_list = pools_name.split(',')
-        for pool in tmp_pool_list:
-            temp_pool_dict[pool.strip()] = {}
-
-        return temp_pool_dict
+        return {el: {} for el in pools_names}
 
     def _init_channel_dict(self):
-        temp_ch_dict = {}
         channels = self.configuration.safe_get('infortrend_share_channels')
-        if not channels:
-            msg = _('The infortrend_share_channels is not set.')
-            raise exception.InvalidParameterValue(err=msg)
 
-        tmp_ch_list = channels.split(',')
-        for channel in tmp_ch_list:
-            temp_ch_dict[channel.strip()] = ''
-
-        return temp_ch_dict
+        return {el: '' for el in channels}
 
     def do_setup(self, context):
         """Any initialization the share driver does while starting."""
@@ -136,14 +114,13 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         LOG.debug('Updating Infortrend backend [%s].', self.backend_name)
 
-        data = dict(share_backend_name=self.backend_name,
-                    vendor_name='Infortrend',
-                    driver_version=self.VERSION,
-                    storage_protocol=self.PROTOCOL,
-                    total_capacity_gb=0.0,
-                    free_capacity_gb=0.0,
-                    reserved_percentage=0,
-                    pools=self.ift_nas.update_pools_stats())
+        data = dict(
+            share_backend_name=self.backend_name,
+            vendor_name='Infortrend',
+            driver_version=self.VERSION,
+            storage_protocol=self.PROTOCOL,
+            reserved_percentage=self.configuration.reserved_share_percentage,
+            pools=self.ift_nas.update_pools_stats())
         LOG.debug('Infortrend pools status: %s', data['pools'])
 
         super(InfortrendNASDriver, self)._update_share_stats(data)
@@ -170,37 +147,21 @@ class InfortrendNASDriver(driver.ShareDriver):
                   the driver is ordered to resync, i.e. rules in the
                   ``access_rules`` parameter.
         """
-        LOG.debug(
-            'Update access rules for share: %(share)s, '
-            'access_rules: %(access_rules)s, '
-            'add_rules: %(add_rules)s, '
-            'delete_rules: %(delete_rules)s', {
-                'share': share['share_id'],
-                'access_rules': self._list_of_dict(access_rules),
-                'add_rules': self._list_of_dict(add_rules),
-                'delete_rules': self._list_of_dict(delete_rules),
-            })
+
         return self.ift_nas.update_access(share, access_rules, add_rules,
                                           delete_rules, share_server)
 
-    def _list_of_dict(self, list_of_dict):
-        temp_list = []
-        for data in list_of_dict:
-            temp_dict = dict(data)
-            temp_list.append(temp_dict)
-        return temp_list
-
     def create_share(self, context, share, share_server=None):
-        """Is called to create share."""
+        """Create a share."""
 
-        LOG.debug('Creating share: %s.', share['share_id'])
+        LOG.debug('Creating share: %s.', share['id'])
 
         return self.ift_nas.create_share(share, share_server)
 
     def delete_share(self, context, share, share_server=None):
-        """Is called to remove share."""
+        """Remove a share."""
 
-        LOG.debug('Deleting share: %s.', share['share_id'])
+        LOG.debug('Deleting share: %s.', share['id'])
 
         return self.ift_nas.delete_share(share, share_server)
 
@@ -221,14 +182,6 @@ class InfortrendNASDriver(driver.ShareDriver):
         :return None or list with export locations
         """
         return self.ift_nas.ensure_share(share, share_server)
-
-    def allow_access(self, context, share, access, share_server=None):
-        """Allow access to the share."""
-        return self.ift_nas.allow_access(share, access, share_server)
-
-    def deny_access(self, context, share, access, share_server=None):
-        """Deny access to the share."""
-        return self.ift_nas.deny_access(share, access, share_server)
 
     def manage_existing(self, share, driver_options):
         """Brings an existing share under Manila management.
@@ -251,10 +204,8 @@ class InfortrendNASDriver(driver.ShareDriver):
                  which should contain size of the share.
         """
         LOG.debug(
-            'Manage existing for share: %(share)s, '
-            'driver_options: %(driver_options)s, ', {
+            'Manage existing for share: %(share)s,', {
                 'share': share['share_id'],
-                'driver_options': dict(driver_options),
             })
         return self.ift_nas.manage_existing(share, driver_options)
 
@@ -270,6 +221,10 @@ class InfortrendNASDriver(driver.ShareDriver):
 
         If provided share cannot be unmanaged, then raise an
         UnmanageInvalidShare exception, specifying a reason for the failure.
+
+        This method is invoked when the share is being unmanaged with
+        a share type that has ``driver_handles_share_servers``
+        extra-spec set to False.
         """
         LOG.debug(
             'Unmanage share: %(share)s', {

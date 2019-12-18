@@ -1,4 +1,4 @@
-# Copyright (c) 2017 Infortrend Technology, Inc.
+# Copyright (c) 2019 Infortrend Technology, Inc.
 # All Rights Reserved.
 #
 #    Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -16,8 +16,8 @@
 
 class InfortrendNASTestData(object):
 
-    fake_share_id = ['4d6984fd-8572-4467-964f-24936a8c4ea2',  # NFS
-                     'a7b933e6-bb77-4823-a86f-f2c3ab41a8a5']  # CIFS
+    fake_share_id = ['5a0aa06e-1c57-4996-be46-b81e360e8866',  # NFS
+                     'aac4fe64-7a9c-472a-b156-9adbb50b4d29']  # CIFS
 
     fake_share_name = [fake_share_id[0].replace('-', ''),
                        fake_share_id[1].replace('-', '')]
@@ -54,7 +54,7 @@ class InfortrendNASTestData(object):
                                '"owner": "A", '
                                '"readOnly": false, '
                                '"modifyTime": "2017-04-27 16:16", '
-                               '"directory": "/LV-1/share-pool-01", '
+                               '"directory": "/share-pool-01/LV-1", '
                                '"volumeId": "6541BAFB2E6C57B6", '
                                '"mounted": true, '
                                '"size": "321965260800"}, '
@@ -68,7 +68,7 @@ class InfortrendNASTestData(object):
                                '"owner": "A", '
                                '"readOnly": false, '
                                '"modifyTime": "2017-04-27 15:45", '
-                               '"directory": "/LV-1/share-pool-02", '
+                               '"directory": "/share-pool-02/LV-1", '
                                '"volumeId": "147A8FB67DA39914", '
                                '"mounted": true, '
                                '"size": "107321753600"}]}\n\n')
@@ -98,7 +98,7 @@ class InfortrendNASTestData(object):
         'owner': 'A',
         'readOnly': False,
         'modifyTime': '2017-04-27 16:16',
-        'directory': '/LV-1/share-pool-01',
+        'directory': '/share-pool-01/LV-1',
         'volumeId': '6541BAFB2E6C57B6',
         'mounted': True,
         'size': '321965260800'}, {
@@ -112,7 +112,7 @@ class InfortrendNASTestData(object):
         'owner': 'A',
         'readOnly': False,
         'modifyTime': '2017-04-27 15:45',
-        'directory': '/LV-1/share-pool-02',
+        'directory': '/share-pool-02/LV-1',
         'volumeId': '147A8FB67DA39914',
         'mounted': True,
         'size': '107321753600',
@@ -221,7 +221,7 @@ class InfortrendNASTestData(object):
             'oss': False,
             'sftp': False,
             'nfs': False,
-            'directory': '/LV-1/share-pool-01/' + self.fake_share_name[1],
+            'directory': '/share-pool-01/LV-1/' + self.fake_share_name[1],
             'exist': True,
             'afp': False,
             'webdav': False
@@ -251,7 +251,7 @@ class InfortrendNASTestData(object):
         'quota': '',
         'modifyTime': '2017-04-06 11:35',
         'owner': 'A',
-        'path': '/LV-1/share-pool-01/UserHome',
+        'path': '/share-pool-01/LV-1/UserHome',
         'subshare': True,
         'type': 'subfolder',
         'empty': False,
@@ -266,7 +266,7 @@ class InfortrendNASTestData(object):
         'quota': '21474836480',
         'modifyTime': '2017-04-27 15:44',
         'owner': 'A',
-        'path': '/LV-1/share-pool-01/test-folder',
+        'path': '/share-pool-01/LV-1/test-folder',
         'subshare': False,
         'type': 'subfolder',
         'empty': True,
@@ -281,7 +281,7 @@ class InfortrendNASTestData(object):
         'quota': '32212254720',
         'modifyTime': '2017-04-27 16:15',
         'owner': 'A',
-        'path': '/LV-1/share-pool-01/' + fake_share_name[0],
+        'path': '/share-pool-01/LV-1/' + fake_share_name[0],
         'subshare': False,
         'type': 'subfolder',
         'empty': True,
@@ -296,7 +296,7 @@ class InfortrendNASTestData(object):
         'quota': '53687091200',
         'modifyTime': '2017-04-27 16:16',
         'owner': 'A',
-        'path': '/LV-1/share-pool-01/' + fake_share_name[1],
+        'path': '/share-pool-01/LV-1/' + fake_share_name[1],
         'subshare': False,
         'type': 'subfolder',
         'empty': True,
@@ -311,7 +311,7 @@ class InfortrendNASTestData(object):
         'quota': '94091997184',
         'modifyTime': '2017-04-28 15:44',
         'owner': 'A',
-        'path': '/LV-1/share-pool-01/test-folder-02',
+        'path': '/share-pool-01/LV-1/test-folder-02',
         'subshare': False,
         'type': 'subfolder',
         'empty': True,
@@ -324,7 +324,7 @@ class InfortrendNASTestData(object):
         'Description': '',
         'Quota': 'none',
         'PWD Expiry Date': '2291-01-19',
-        'Home Directory': '/LV-1/share-pool-01/UserHome/user01',
+        'Home Directory': '/share-pool-01/LV-1/UserHome/user01',
         'UID': '100001',
         'Type': 'Local',
         'Name': 'user01'}, {
@@ -333,7 +333,7 @@ class InfortrendNASTestData(object):
         'Description': '',
         'Quota': 'none',
         'PWD Expiry Date': '2017-08-07',
-        'Home Directory': '/LV-1/share-pool-01/UserHome/user02',
+        'Home Directory': '/share-pool-01/LV-1/UserHome/user02',
         'UID': '100002',
         'Type': 'Local',
         'Name': 'user02'
@@ -345,7 +345,7 @@ class InfortrendNASTestData(object):
         'oss': False,
         'sftp': False,
         'nfs': True,
-        'directory': '/LV-1/share-pool-01/' + fake_share_name[0],
+        'directory': '/share-pool-01/LV-1/' + fake_share_name[0],
         'exist': True,
         'nfs_detail': {
             'hostList': [{
